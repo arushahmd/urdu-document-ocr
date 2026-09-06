@@ -1,0 +1,48 @@
+# Python bytecode and build products
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Environments and local configuration
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Test, lint, and coverage state
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Runtime outputs
+*.log
+logs/
+outputs/
+runs/
+tmp/
+temp/
+
+# Models and checkpoints
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Local/private and generated bulk data
+data/private/
+data/local/
+data/generated/
+generated-data/
