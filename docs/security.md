@@ -15,13 +15,22 @@ This document records engineering controls, not a security certification.
 
 ## Runtime boundary
 
-Documents and images will be treated as untrusted input. Later ingestion phases must enforce the
-frozen input byte, PDF page, per-page pixel, total pixel, and DPI limits before expensive work.
-Errors and serialized results must omit absolute paths and document content unless content is the
-explicit requested result.
+Documents and images are treated as untrusted input. Phase 5 enforces the frozen input-byte, PDF
+page, per-page pixel, total-pixel, and DPI limits. Files are size-checked before reading; byte
+buffers are checked before parsing; PDF page count and every page geometry are checked before any
+page is rendered. Pillow's decompression-bomb protection remains enabled, and its warning is
+handled locally as a resource failure.
+
+Image and PDF resources are decoded in memory and closed deterministically. Returned NumPy arrays
+own their data. Image metadata is discarded, and public source records never include an absolute
+path. Typed public errors contain stable stage codes and content-free messages; underlying
+decoder exceptions remain chained for controlled diagnostics but are not serialized.
 
 Library logging must not include OCR document text by default. Diagnostic logging should record
 safe stage names, counts, fingerprints, and machine-safe error codes.
+
+The current loader does not accept PDF passwords, write temporary page files, fetch remote
+content, auto-download assets, execute document content, or silently drop blank pages.
 
 ## Reporting concerns
 

@@ -161,6 +161,8 @@ def test_preprocessed_page_validates_array_contracts() -> None:
     )
 
     assert processed.to_public_dict()["is_blank"] is True
+    assert processed.to_public_dict()["deskew_applied"] is False
+    assert not processed.deskew_applied
     with pytest.raises(ValueError, match="match"):
         PreprocessedPage(
             page=page,

@@ -11,7 +11,7 @@ engineering requirements:
 
 These statements justify capabilities in the new roadmap; they are not implementation templates.
 No historical function, control flow, constants, configuration, test, comment, or documentation
-text was used to implement Phase 4.
+text was used to implement Phase 4 or Phase 5.
 
 No historical source code, model weights, datasets, credentials, or private assets are
 incorporated into this repository. Historical metrics are not current claims or baselines.

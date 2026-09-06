@@ -73,9 +73,9 @@ def test_repository_has_no_license_or_premature_modules() -> None:
     )
     package = REPOSITORY_ROOT / "src" / "urdu_document_ocr"
     assert not any(
-        (package / name).exists()
-        for name in ("document", "vision", "data", "recognition", "training", "evaluation")
+        (package / name).exists() for name in ("data", "recognition", "training", "evaluation")
     )
+    assert not any((package / name).exists() for name in ("segmentation.py", "layout.py", "api.py"))
 
 
 def test_public_files_have_no_private_paths_or_credential_values() -> None:

@@ -271,7 +271,14 @@ class PreprocessedPage:
             },
             "is_blank": self.is_blank,
             "deskew_angle_degrees": float(self.deskew_angle_degrees),
+            "deskew_applied": self.deskew_applied,
         }
+
+    @property
+    def deskew_applied(self) -> bool:
+        """Whether a nonzero deskew correction was applied."""
+
+        return not math.isclose(float(self.deskew_angle_degrees), 0.0, abs_tol=1e-12)
 
 
 class RegionKind(StrEnum):

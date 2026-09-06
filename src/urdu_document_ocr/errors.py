@@ -1,0 +1,62 @@
+"""Typed, privacy-safe failures exposed by document and vision operations."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import ClassVar, TypeAlias
+
+PublicContextValue: TypeAlias = str | int | float | bool | None
+
+
+class UrduOCRError(Exception):
+    """Base error with a stable public machine code and content-free message."""
+
+    code: ClassVar[str] = "urdu_ocr_error"
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        context: Mapping[str, PublicContextValue] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.context = {} if context is None else dict(context)
+
+    def to_public_dict(self) -> dict[str, object]:
+        return {"code": self.code, "message": str(self), "context": dict(self.context)}
+
+
+class DocumentLoadError(UrduOCRError):
+    """A supported document could not be opened or decoded."""
+
+    code = "document_load_error"
+
+
+class UnsupportedDocumentFormatError(DocumentLoadError):
+    """Input is not one of the explicitly supported document formats."""
+
+    code = "unsupported_document_format"
+
+
+class ResourceLimitError(DocumentLoadError):
+    """Input exceeds a configured byte, page, pixel, or DPI limit."""
+
+    code = "resource_limit_exceeded"
+
+
+class PdfRenderError(DocumentLoadError):
+    """A PDF could not be opened, inspected, or rasterized safely."""
+
+    code = "pdf_render_error"
+
+
+class PdfPasswordError(PdfRenderError):
+    """A password-protected PDF is unsupported by the V1 loader."""
+
+    code = "pdf_password_required"
+
+
+class PreprocessingError(UrduOCRError):
+    """A valid page could not be preprocessed."""
+
+    code = "preprocessing_error"
