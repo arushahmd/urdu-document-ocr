@@ -6,6 +6,7 @@ from urdu_document_ocr.config import (
     InputLimitsConfig,
     MorphologyOperation,
     PreprocessingConfig,
+    SegmentationConfig,
     ThresholdMethod,
 )
 from urdu_document_ocr.document import load_document
@@ -15,11 +16,12 @@ from urdu_document_ocr.errors import (
     PdfRenderError,
     PreprocessingError,
     ResourceLimitError,
+    SegmentationError,
     UnsupportedDocumentFormatError,
     UrduOCRError,
 )
 from urdu_document_ocr.types import PageImage, PreprocessedPage, SourceMetadata, SourceType
-from urdu_document_ocr.vision import preprocess_page
+from urdu_document_ocr.vision import extract_line_crop, preprocess_page, segment_page
 
 __version__ = "0.1.0"
 
@@ -36,12 +38,16 @@ __all__ = [
     "PreprocessingConfig",
     "PreprocessingError",
     "ResourceLimitError",
+    "SegmentationConfig",
+    "SegmentationError",
     "SourceMetadata",
     "SourceType",
     "ThresholdMethod",
     "UnsupportedDocumentFormatError",
     "UrduOCRError",
     "__version__",
+    "extract_line_crop",
     "load_document",
     "preprocess_page",
+    "segment_page",
 ]

@@ -60,3 +60,9 @@ class PreprocessingError(UrduOCRError):
     """A valid page could not be preprocessed."""
 
     code = "preprocessing_error"
+
+
+class SegmentationError(UrduOCRError):
+    """A structurally valid preprocessed page could not be segmented."""
+
+    code = "segmentation_error"

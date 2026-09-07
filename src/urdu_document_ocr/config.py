@@ -230,6 +230,80 @@ class PreprocessingConfig(StrictConfig):
 
 
 @dataclass(frozen=True, slots=True)
+class SegmentationConfig(StrictConfig):
+    """Scale-relative line grouping and one/two-column layout policy."""
+
+    _config_name: ClassVar[str] = "segmentation"
+
+    component_min_area_fraction: float = 0.000001
+    component_min_area_pixels: int = 2
+    line_min_area_fraction: float = 0.00001
+    scale_max_component_area_fraction: float = 0.05
+    core_min_height_scale: float = 0.4
+    horizontal_grouping_gap_scale: float = 4.0
+    vertical_grouping_tolerance_scale: float = 0.65
+    mark_attachment_distance_scale: float = 1.25
+    line_merge_gap_scale: float = 8.0
+    padding_scale: float = 0.2
+    spanning_width_fraction: float = 0.65
+    spanning_center_tolerance_fraction: float = 0.15
+    gutter_min_width_fraction: float = 0.06
+    gutter_min_width_scale: float = 2.0
+    minimum_column_lines: int = 2
+    minimum_paired_lines: int = 2
+    minimum_column_vertical_overlap: float = 0.35
+    y_order_tolerance_scale: float = 0.25
+
+    def __post_init__(self) -> None:
+        _require_fraction("component_min_area_fraction", self.component_min_area_fraction)
+        _require_int("component_min_area_pixels", self.component_min_area_pixels, minimum=1)
+        _require_fraction("line_min_area_fraction", self.line_min_area_fraction)
+        if self.line_min_area_fraction < self.component_min_area_fraction:
+            raise ConfigurationError(
+                "line_min_area_fraction must be at least component_min_area_fraction"
+            )
+        _require_fraction(
+            "scale_max_component_area_fraction", self.scale_max_component_area_fraction
+        )
+        if self.scale_max_component_area_fraction <= self.line_min_area_fraction:
+            raise ConfigurationError(
+                "scale_max_component_area_fraction must exceed line_min_area_fraction"
+            )
+        _require_fraction("core_min_height_scale", self.core_min_height_scale)
+        self._validate_scale("horizontal_grouping_gap_scale", maximum=20.0)
+        self._validate_scale("vertical_grouping_tolerance_scale", maximum=3.0)
+        self._validate_scale("mark_attachment_distance_scale", maximum=5.0)
+        self._validate_scale("line_merge_gap_scale", maximum=30.0)
+        if self.line_merge_gap_scale < self.horizontal_grouping_gap_scale:
+            raise ConfigurationError(
+                "line_merge_gap_scale must be at least horizontal_grouping_gap_scale"
+            )
+        self._validate_scale("padding_scale", maximum=1.0, allow_zero=True)
+        _require_fraction("spanning_width_fraction", self.spanning_width_fraction)
+        if self.spanning_width_fraction < 0.5:
+            raise ConfigurationError("spanning_width_fraction must be at least 0.5")
+        _require_fraction(
+            "spanning_center_tolerance_fraction", self.spanning_center_tolerance_fraction
+        )
+        if self.spanning_center_tolerance_fraction > 0.5:
+            raise ConfigurationError("spanning_center_tolerance_fraction must be at most 0.5")
+        _require_fraction("gutter_min_width_fraction", self.gutter_min_width_fraction)
+        if self.gutter_min_width_fraction > 0.5:
+            raise ConfigurationError("gutter_min_width_fraction must be at most 0.5")
+        self._validate_scale("gutter_min_width_scale", maximum=20.0)
+        _require_int("minimum_column_lines", self.minimum_column_lines, minimum=2)
+        _require_int("minimum_paired_lines", self.minimum_paired_lines, minimum=1)
+        _require_fraction("minimum_column_vertical_overlap", self.minimum_column_vertical_overlap)
+        self._validate_scale("y_order_tolerance_scale", maximum=1.0, allow_zero=True)
+
+    def _validate_scale(self, name: str, *, maximum: float, allow_zero: bool = False) -> None:
+        value = getattr(self, name)
+        _require_number(name, value, minimum=0.0, inclusive=allow_zero)
+        if float(value) > maximum:
+            raise ConfigurationError(f"{name} must be at most {maximum}")
+
+
+@dataclass(frozen=True, slots=True)
 class RecognizerConfig(StrictConfig):
     """Recognizer dimensions already fixed by the architecture."""
 

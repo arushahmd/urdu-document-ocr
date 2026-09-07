@@ -27,8 +27,15 @@ FORBIDDEN_SUFFIXES = {
 }
 
 CONTENT_SUFFIXES = {".md", ".py", ".toml", ".yaml", ".yml"}
+HISTORICAL_SCAN_SUFFIXES = {".bmp", ".jpeg", ".jpg", ".pdf", ".png", ".tif", ".tiff"}
+MAXIMUM_EXPECTED_FILE_BYTES = 1_000_000
 WINDOWS_ABSOLUTE_PATH = re.compile(r"(?<![A-Za-z0-9])[A-Za-z]:[\\/](?:[^\s`\"']+[\\/])+[^\s`\"']+")
 PRIVATE_HOME_PATH = re.compile(r"/home/[A-Za-z0-9._-]+/")
+INTERNAL_IPV4 = re.compile(
+    r"(?<!\d)(?:10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}|"
+    r"172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2})(?!\d)"
+)
+PERSONAL_EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+")
 CREDENTIAL_ASSIGNMENT = re.compile(
     r"(?i)(?:password|api[_-]?key|secret|access[_-]?token)\s*[:=]\s*[\"'][^\"']+[\"']"
 )
@@ -67,6 +74,22 @@ def test_candidate_tree_has_no_forbidden_artifacts() -> None:
     assert forbidden == []
 
 
+def test_candidate_tree_has_no_historical_scans_or_unexpected_large_files() -> None:
+    scans = [
+        path.relative_to(REPOSITORY_ROOT).as_posix()
+        for path in candidate_files()
+        if path.suffix.lower() in HISTORICAL_SCAN_SUFFIXES
+    ]
+    large = [
+        path.relative_to(REPOSITORY_ROOT).as_posix()
+        for path in candidate_files()
+        if path.stat().st_size > MAXIMUM_EXPECTED_FILE_BYTES
+    ]
+
+    assert scans == []
+    assert large == []
+
+
 def test_repository_has_no_license_or_premature_modules() -> None:
     assert not any(
         (REPOSITORY_ROOT / name).exists() for name in ("LICENSE", "LICENSE.md", "COPYING")
@@ -87,6 +110,10 @@ def test_public_files_have_no_private_paths_or_credential_values() -> None:
             findings.append(f"absolute Windows path in {relative}")
         if PRIVATE_HOME_PATH.search(text):
             findings.append(f"private home path in {relative}")
+        if INTERNAL_IPV4.search(text):
+            findings.append(f"internal IPv4 address in {relative}")
+        if PERSONAL_EMAIL.search(text):
+            findings.append(f"personal email in {relative}")
         if CREDENTIAL_ASSIGNMENT.search(text):
             findings.append(f"credential-like assignment in {relative}")
         if PRIVATE_KEY_HEADER in text:

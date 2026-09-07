@@ -18,7 +18,7 @@ The intended V1 is a single-process Python package. Vision, recognition, evaluat
 interface layers remain separable so each can be tested without inventing service
 infrastructure.
 
-## Implemented through Phase 5
+## Implemented through Phase 6
 
 - `urdu_document_ocr.types`: immutable structural records, validated image-array contracts,
   half-open geometry, vocabulary indexing/fingerprinting, and privacy-safe public projections.
@@ -28,7 +28,8 @@ infrastructure.
 - `urdu_document_ocr.document`: bounded PNG/JPEG decoding and PDF preflight/rasterization into
   owned RGB page arrays.
 - `urdu_document_ocr.vision`: grayscale enhancement, foreground thresholding, blank detection,
-  and optional modest deskew.
+  optional modest deskew, connected-component line segmentation, one/two-column layout, and Urdu
+  RTL reading order.
 
 RGB page images are `uint8[height,width,3]`. Preprocessed grayscale pages are
 `uint8[height,width]`; foreground masks are `bool[height,width]`. Page and reading-order indices
@@ -82,9 +83,63 @@ or low-confidence result is a no-op. A returned positive angle means the counter
 correction passed to OpenCV. Applied grayscale rotation uses linear interpolation and the border
 median as fill; the foreground mask and blank decision are then regenerated.
 
+## Segmentation behavior
+
+`segment_page` consumes `PreprocessedPage.foreground_mask` directly, preserving the invariant
+`True = likely ink`; it never thresholds the RGB image again. A blank flag or empty mask returns
+an empty tuple. Otherwise OpenCV extracts 8-connected components and the implementation retains
+only each component's half-open box, area, and centroid after discarding the label image.
+
+The component floor is the greater of 2 pixels and `ceil(page_area * 0.000001)`. Text scale is
+the area-weighted median component height after excluding components larger than 5% of the page
+when smaller alternatives exist. This robust height statistic drives all grouping distances.
+Core components have height at least 40% of scale or area at least `ceil(0.5 * scale^2)`.
+Remaining small components are not discarded indiscriminately: each is attached to the nearest
+core group when both its horizontal and vertical interval gaps are at most 1.25 scale units.
+
+Core grouping is a deterministic x-sweep plus union-find. Candidate pairs must be no more than
+4 scale units apart horizontally and must either overlap vertically by at least 25% of the
+smaller box or have centers within 0.65 scale units. A conservative second pass joins fragments
+within 8 scale units only with 55% vertical overlap or centers within 0.35 scale units. On pages
+with gutter evidence, that pass runs separately for spanning, right, and left pools so a line
+cannot bridge the columns. Phase 6 applies no morphology.
+
+Final groups must contain at least the greater of five foreground pixels (with the default
+component floor) and `ceil(page_area * 0.00001)`. Their boxes are exact unions of retained
+components, padded on every side by `round(0.2 * scale)` and clipped to the page. These permissive
+area rules retain short lines, punctuation, and page numbers while rejecting unsupported isolated
+specks. Candidate identifiers are assigned from deterministic geometric order; final reading
+indices are contiguous.
+
+## Layout and Urdu reading order
+
+V1 supports one column, two columns, and geometric spanning lines only. Gutter detection excludes
+preliminary wide-centered candidates, then searches the central 50% of the content x-range for a
+zero-occupancy run. A viable gutter is at least the greater of 6% of content width and two text
+scale units. Each side must have at least two body lines, their aggregate vertical spans must
+overlap by at least 35% of the smaller span, and at least two left/right line centers must pair
+within 1.5 scale units. Candidate gutters are ranked by paired lines, vertical support, width,
+then proximity to content center. If no candidate passes every check, the page is one-column.
+
+Given a valid gutter, a candidate is `RegionKind.SPANNING` only when it is at least 65% of content
+width, its center is within 15% of the content width from content center, and its box crosses the
+entire inferred gutter. Other candidates are assigned by center: `column_index=0` is the right
+column and `column_index=1` is the left column. One-column and spanning lines use
+`column_index=None`.
+
+Reading order is divided at the vertical center of each spanning line. In every intervening body
+band, right-column lines are read top-to-bottom before left-column lines; the spanning line then
+follows. This places a full-width heading before its body, a mid-page separator between sections,
+and a footer after the preceding columns. Within vertical ordering, starts separated by at most
+25% of text scale share a tolerance band and use rightmost-first, then stable geometric and
+identifier tie-breaks.
+
+The optional `extract_line_crop` helper validates page identity and bounds, then returns an owned
+copy from either grayscale pixels or the boolean foreground mask. `LineRegion` itself contains no
+page arrays and its public projection serializes geometry only.
+
 ## Planned, not implemented
 
-- Phase 6: scale-derived line segmentation and deterministic RTL layout ordering.
 - Phase 7: JSONL manifests, validation, grouped splitting, and manifest-derived vocabulary.
 - Phase 8: provenance-cleared shaped Urdu synthetic fixtures.
 - Phases 9–10: PyTorch CNN-BiLSTM-CTC recognition, training, and tensor-only checkpoints.

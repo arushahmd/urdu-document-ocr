@@ -30,8 +30,14 @@ and engineering decisions; it does not offer legal conclusions.
 | Pillow | Used in Phase 5 | `EXTERNAL_LIBRARY` | Image decoding and EXIF orientation from [official documentation](https://pillow.readthedocs.io/en/stable/) | No |
 | OpenCV headless | Used in Phase 5 | `EXTERNAL_LIBRARY` | Grayscale, threshold, local statistics, connected components, morphology, and affine transforms from [official documentation](https://docs.opencv.org/) | No |
 | pypdfium2 / PDFium | Used in Phase 5 | `EXTERNAL_LIBRARY` | In-memory PDF inspection and rasterization from [official documentation](https://pypdfium2.readthedocs.io/) | No |
+| Eight-connected component extraction | Implemented in Phase 6 | `EXTERNAL_LIBRARY` | OpenCV component statistics API from [official documentation](https://docs.opencv.org/4.13.0/d3/dc0/group__imgproc__shape.html); orchestration and retained records are newly written | No |
+| Robust component-scale estimation | Implemented in Phase 6 | `GENERAL_ALGORITHM` | Newly written area-weighted median-height statistic with relative outlier exclusion | No |
+| Geometry helpers and component-to-line grouping | Implemented in Phase 6 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written half-open interval operations, x-sweep/union-find grouping, mark attachment, and conservative fragment merging | No |
+| Spanning-region and persistent-gutter inference | Implemented in Phase 6 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly designed central occupancy, bilateral support, paired-line, vertical-persistence, and gutter-crossing rules | No |
+| Urdu RTL reading-order assignment | Implemented in Phase 6 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written vertical-band ordering with explicit right-column-first semantics | No |
+| Phase 6 tests | Implemented in Phase 6 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Deterministic generated geometric masks and RGB pages; no external scan, font, transcription, or benchmark fixture | No |
 
 Planned libraries and their licensing/package implications are recorded in
 `dependency-review.md`. Listing a dependency does not incorporate its source into this repository
-or select a license for repository-owned code. Phase 5 was implemented without consulting or
-copying any historical preprocessing, conversion, skew, notebook, or test source.
+or select a license for repository-owned code. Phases 5 and 6 were implemented without consulting
+or copying historical preprocessing, conversion, segmentation, layout, notebook, or test source.

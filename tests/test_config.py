@@ -6,6 +6,7 @@ from urdu_document_ocr.config import (
     ConfigurationError,
     InputLimitsConfig,
     RecognizerConfig,
+    SegmentationConfig,
     TrainingConfig,
 )
 
@@ -41,6 +42,51 @@ def test_recognizer_defaults_are_frozen_phase_3_values() -> None:
     assert RecognizerConfig() == RecognizerConfig(
         normalized_height=64, max_width=2048, blank_index=0
     )
+
+
+def test_segmentation_defaults_are_scale_relative_and_conservative() -> None:
+    config = SegmentationConfig()
+
+    assert config.component_min_area_fraction == 0.000001
+    assert config.horizontal_grouping_gap_scale == 4.0
+    assert config.spanning_width_fraction == 0.65
+    assert config.minimum_column_lines == 2
+    assert config.fingerprint == SegmentationConfig.from_mapping(config.to_dict()).fingerprint
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"component_min_area_fraction": 0},
+        {"component_min_area_pixels": 0},
+        {"line_min_area_fraction": 0.0000001},
+        {"scale_max_component_area_fraction": 0.000001},
+        {"core_min_height_scale": 1.1},
+        {"horizontal_grouping_gap_scale": 0},
+        {"horizontal_grouping_gap_scale": 21},
+        {"vertical_grouping_tolerance_scale": 3.1},
+        {"mark_attachment_distance_scale": 5.1},
+        {"line_merge_gap_scale": 3},
+        {"line_merge_gap_scale": 31},
+        {"padding_scale": 1.1},
+        {"spanning_width_fraction": 0.49},
+        {"spanning_center_tolerance_fraction": 0.51},
+        {"gutter_min_width_fraction": 0.51},
+        {"gutter_min_width_scale": 21},
+        {"minimum_column_lines": 1},
+        {"minimum_paired_lines": 0},
+        {"minimum_column_vertical_overlap": 0},
+        {"y_order_tolerance_scale": 1.1},
+    ],
+)
+def test_segmentation_config_rejects_invalid_values(overrides: dict[str, object]) -> None:
+    with pytest.raises(ConfigurationError):
+        SegmentationConfig(**overrides)  # type: ignore[arg-type]
+
+
+def test_segmentation_mapping_rejects_unknown_fields() -> None:
+    with pytest.raises(ConfigurationError, match="unknown segmentation fields"):
+        SegmentationConfig.from_mapping({"unreviewed_layout_knob": True})
 
 
 @pytest.mark.parametrize(

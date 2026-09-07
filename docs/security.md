@@ -32,6 +32,13 @@ safe stage names, counts, fingerprints, and machine-safe error codes.
 The current loader does not accept PDF passwords, write temporary page files, fetch remote
 content, auto-download assets, execute document content, or silently drop blank pages.
 
+Phase 6 segmentation stays inside the already bounded page arrays and makes no network calls,
+data-service calls, or external model downloads. It processes only geometry derived from the
+foreground mask. `LineRegion` records do not contain or serialize raw page data, and crop
+extraction is explicit and returns an owned in-memory array. No recognized document text exists
+at this phase. Segmentation and layout emit no content logs; typed failure context contains only a
+source page number and stage name.
+
 ## Reporting concerns
 
 Potential vulnerabilities or accidental private-data inclusions should be reported privately to
