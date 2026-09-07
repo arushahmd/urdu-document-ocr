@@ -81,6 +81,7 @@ def test_candidate_tree_has_no_historical_scans_or_unexpected_large_files() -> N
         path.relative_to(REPOSITORY_ROOT).as_posix()
         for path in candidate_files()
         if path.suffix.lower() in HISTORICAL_SCAN_SUFFIXES
+        and not path.is_relative_to(REPOSITORY_ROOT / "data" / "sample")
     ]
     large = [
         path.relative_to(REPOSITORY_ROOT).as_posix()
@@ -104,7 +105,8 @@ def test_candidate_tree_has_no_historical_dataset_or_vocabulary_artifacts() -> N
             path.stem.casefold() in HISTORICAL_VOCABULARY_STEMS
             and path.suffix.casefold() in {".json", ".txt"}
         )
-        if is_dataset_artifact or is_vocabulary_artifact:
+        is_canonical_fixture = path.is_relative_to(REPOSITORY_ROOT / "data" / "sample")
+        if (is_dataset_artifact or is_vocabulary_artifact) and not is_canonical_fixture:
             findings.append(relative.as_posix())
 
     assert findings == []
@@ -117,7 +119,6 @@ def test_repository_has_no_license_or_premature_modules() -> None:
     package = REPOSITORY_ROOT / "src" / "urdu_document_ocr"
     assert not any((package / name).exists() for name in ("recognition", "training", "evaluation"))
     assert not any((package / name).exists() for name in ("segmentation.py", "layout.py", "api.py"))
-    assert not (package / "data" / "synthetic.py").exists()
 
 
 def test_public_files_have_no_private_paths_or_credential_values() -> None:

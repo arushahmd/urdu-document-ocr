@@ -143,13 +143,16 @@ page arrays and its public projection serializes geometry only.
 
 ## ML data pipeline
 
-The implemented system now has two independent tracks:
+The implemented system now has three independent tracks:
 
 ```text
 DOCUMENT: image/PDF -> PageImage -> PreprocessedPage -> ordered LineRegion geometry
 
 DATA: labeled PNG/JPEG line images -> JSONL manifest -> validation
       -> document-grouped train/validation/test split -> train vocabulary -> review overlay
+
+SAFE REPRODUCIBILITY: authored Urdu text + reviewed local font -> shaped lines/pages
+                      -> controlled degradations -> public fixtures and provenance
 ```
 
 Manifest schema v1 requires `schema_version`, `sample_id`, `image_path`, `text`, and
@@ -188,8 +191,22 @@ manifest or moves/deletes images. Exact schemas are documented in `data-format.m
 
 ## Planned, not implemented
 
-- Phase 8: provenance-cleared shaped Urdu synthetic fixtures.
 - Phases 9–10: PyTorch CNN-BiLSTM-CTC recognition, training, and tensor-only checkpoints.
 - Phases 11–13: inference, assembly, metrics, benchmarks, CLI, and reference HTTP adapter.
 
 Future directories and imports do not exist until their phase supplies meaningful tested code.
+
+## Synthetic fixture layer
+
+`data.synthetic` is an implemented data-generation layer, not recognition. `synthetic-v1`
+combines the frozen project-authored text set, exact reviewed Noto Nastaliq Urdu font hash,
+strict `SyntheticDataConfig`, stable IDs, and per-ID derived seeds. HarfBuzz performs contextual
+RTL shaping and FreeType rasterizes glyphs directly; missing shaping dependencies, font drift,
+missing glyphs, or noncanonical text fail before generation.
+
+Line output stays grayscale and naturally sized. Page composition adds only the layout families
+needed to exercise existing contracts: one column, balanced/uneven two columns, spanning bands,
+wide lines, blank/near-blank, and mild skew. Ground truth stores tight composition and transformed
+half-open boxes. This data feeds the existing preprocessing and segmentation layers for
+development acceptance checks; it is not a Phase 12 benchmark and no aggregate accuracy is
+published.

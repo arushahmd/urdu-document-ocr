@@ -1,6 +1,6 @@
 # Dependency and license review
 
-Review date: 2026-09-06
+Review date: 2026-09-07
 Python floor: 3.11
 
 This is an engineering inventory based on official project documentation, repository license
@@ -13,6 +13,9 @@ select or imply a license for this repository's original code.
 | Pillow | Image decoding | 12.3.0 requires Python >=3.10 and installed on CPython 3.11 | MIT-CMU | Installed wheel records `dist-info/licenses/LICENSE`; preserve it if redistributing the wheel | Approved as `>=11,<13` / Phase 5 |
 | opencv-python-headless | Headless CV primitives | 5.0.0.93 is current; selected 4.14.0.94 installed on CPython 3.11 and requires NumPy >=2 there | Packaging scripts MIT; installed OpenCV wheel metadata is Apache-2.0 | Wheel includes `LICENSE.txt`, `LICENSE-3RD-PARTY.txt`, and an FFmpeg binary; preserve both notice files | Approved as `>=4.10,<5` to avoid an unreviewed major transition / Phase 5 |
 | pypdfium2 | PDF rasterization | 5.13.0 metadata supports Python >=3.6 and installed on CPython 3.11 | Bindings Apache-2.0 OR BSD-3-Clause; PDFium and binary-build components have their recorded licenses | Wheel contains PDFium plus Apache/BSD/CC-BY texts and per-component build licenses for FreeType, ICU, JPEG, OpenJPEG, PNG, TIFF, zlib, and others; preserve the complete wheel license inventory in binary redistribution | Approved as `>=5,<6` / Phase 5 |
+| uharfbuzz | Contextual Urdu shaping | 0.56.1 on CPython 3.11, bundling HarfBuzz 14.4.0 | Apache-2.0 package metadata and license | Preserve its license when redistributing an environment; no runtime download | Approved as `>=0.56,<0.57` for direct shaping / Phase 8 |
+| freetype-py | Glyph rasterization | 2.5.1 on CPython 3.11, reporting FreeType 2.13.2 | BSD-3-Clause package metadata; bundled FreeType has its upstream license | Preserve wrapper and bundled-library notices when redistributing an environment | Approved as `>=2.5,<3` / Phase 8 |
+| Noto Nastaliq Urdu font | Reproducible Urdu fixture rendering | Exact `NotoNastaliqUrdu-v4.000` release asset; unmodified variable TTF, 325,092 bytes | SIL Open Font License 1.1 and upstream copyright stored beside binary | OFL permits bundling/redistribution with copyright and license; do not sell font alone; no reserved names recorded; distinct from project source | Approved bundled static asset / Phase 8 |
 | PyTorch | Sole ML framework | 2.14.0 requires Python >=3.10 and has CPython 3.11 wheels | BSD-style project license plus multiple bundled component licenses | Large platform-specific wheels; retain notices and do not bundle unnecessarily | Approved for CPU/GPU-specific installation guidance / Phase 9 |
 | safetensors | Tensor-only model weights | 0.8.0 requires Python >=3.10 and supports CPython 3.11 | Apache-2.0 | Preserve license/notice when redistributing; validate format limits independently | Approved / Phase 10 |
 | FastAPI | Thin typed HTTP adapter | 0.141.1 requires Python >=3.10 | MIT | Transitive Starlette/Pydantic inventory required when installed | Approved as optional dependency / Phase 13 |
@@ -31,6 +34,10 @@ select or imply a license for this repository's original code.
 - [OpenCV Python packaging and bundled licenses](https://github.com/opencv/opencv-python)
 - [pypdfium2 packaging and licensing](https://github.com/pypdfium2-team/pypdfium2)
 - [pypdfium2 Python API](https://pypdfium2.readthedocs.io/en/stable/python_api.html)
+- [uharfbuzz source and license](https://github.com/harfbuzz/uharfbuzz)
+- [freetype-py source and license](https://github.com/rougier/freetype-py)
+- [Noto Nastaliq Urdu v4.000 release](https://github.com/notofonts/nastaliq/releases/tag/NotoNastaliqUrdu-v4.000)
+- [SIL Open Font License 1.1](https://openfontlicense.org/)
 - [PyTorch license](https://github.com/pytorch/pytorch/blob/main/LICENSE)
 - [PyTorch installation support](https://docs.pytorch.org/get-started/locally/)
 - [safetensors source and license](https://github.com/huggingface/safetensors)
@@ -48,6 +55,13 @@ Runtime code must not auto-download models, fonts, or datasets.
 Phase 7 adds no runtime or development dependency. Manifest, fingerprint, Unicode, split, and
 review behavior use the Python standard library; line-image validation reuses the already approved
 Pillow dependency.
+
+Phase 8 adds only the two small shaping/rasterization wrappers above. Pillow 12.3.0 on the
+reference Windows CPython 3.11 environment reports FreeType 2.14.3 but no RAQM; the direct
+uharfbuzz 0.56.1/HarfBuzz 14.4.0 plus freetype-py 2.5.1/FreeType 2.13.2 route is therefore used and
+tested instead of relying on Pillow layout. No FriBiDi package is added: controlled single-script
+fixture lines use explicit RTL with isolated numeric LTR runs, and the limitation for arbitrary
+mixed-language bidi text is documented. `fonttools` is unnecessary. No model framework is added.
 
 ## CI action review
 

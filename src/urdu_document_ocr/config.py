@@ -326,6 +326,96 @@ class DatasetSplitConfig(StrictConfig):
 
 
 @dataclass(frozen=True, slots=True)
+class SyntheticDataConfig(StrictConfig):
+    """Bounded deterministic line and page fixture generation policy."""
+
+    _config_name: ClassVar[str] = "synthetic data"
+
+    seed: int = 240_817
+    font_size_min: int = 40
+    font_size_max: int = 54
+    horizontal_padding_min: int = 12
+    horizontal_padding_max: int = 28
+    vertical_padding_min: int = 8
+    vertical_padding_max: int = 16
+    background_intensity_min: int = 246
+    background_intensity_max: int = 255
+    text_intensity_min: int = 8
+    text_intensity_max: int = 48
+    blur_probability: float = 0.35
+    blur_sigma_min: float = 0.20
+    blur_sigma_max: float = 0.65
+    noise_probability: float = 0.40
+    noise_std_min: float = 0.40
+    noise_std_max: float = 1.80
+    skew_probability: float = 0.30
+    skew_max_abs_degrees: float = 2.50
+    max_line_width: int = 1_800
+    page_width: int = 1_000
+    page_height: int = 1_200
+    page_margin: int = 64
+    column_gutter: int = 100
+
+    def __post_init__(self) -> None:
+        _require_int("seed", self.seed, minimum=0)
+        for name in (
+            "font_size_min",
+            "font_size_max",
+            "horizontal_padding_min",
+            "horizontal_padding_max",
+            "vertical_padding_min",
+            "vertical_padding_max",
+            "background_intensity_min",
+            "background_intensity_max",
+            "text_intensity_min",
+            "text_intensity_max",
+            "max_line_width",
+            "page_width",
+            "page_height",
+            "page_margin",
+            "column_gutter",
+        ):
+            _require_int(name, getattr(self, name), minimum=0)
+        if self.font_size_min < 16 or self.font_size_max < self.font_size_min:
+            raise ConfigurationError("font sizes must be ordered and at least 16")
+        if self.font_size_max > 96:
+            raise ConfigurationError("font_size_max must be at most 96")
+        if self.horizontal_padding_max < self.horizontal_padding_min:
+            raise ConfigurationError("horizontal padding bounds must be ordered")
+        if self.vertical_padding_max < self.vertical_padding_min:
+            raise ConfigurationError("vertical padding bounds must be ordered")
+        if not 0 <= self.text_intensity_min <= self.text_intensity_max <= 255:
+            raise ConfigurationError("text intensity bounds must be ordered within 0..255")
+        if not 0 <= self.background_intensity_min <= self.background_intensity_max <= 255:
+            raise ConfigurationError("background intensity bounds must be ordered within 0..255")
+        if self.text_intensity_max + 64 > self.background_intensity_min:
+            raise ConfigurationError("synthetic foreground/background contrast must be at least 64")
+        for name in ("blur_probability", "noise_probability", "skew_probability"):
+            _require_fraction(name, getattr(self, name), allow_zero=True)
+        for minimum_name, maximum_name in (
+            ("blur_sigma_min", "blur_sigma_max"),
+            ("noise_std_min", "noise_std_max"),
+        ):
+            minimum = getattr(self, minimum_name)
+            maximum = getattr(self, maximum_name)
+            _require_number(minimum_name, minimum, minimum=0.0, inclusive=True)
+            _require_number(maximum_name, maximum, minimum=0.0, inclusive=True)
+            if float(maximum) < float(minimum):
+                raise ConfigurationError(f"{minimum_name} and {maximum_name} must be ordered")
+        _require_number(
+            "skew_max_abs_degrees", self.skew_max_abs_degrees, minimum=0.0, inclusive=True
+        )
+        if float(self.skew_max_abs_degrees) > 5.0:
+            raise ConfigurationError("skew_max_abs_degrees must be at most 5.0")
+        if self.max_line_width < 64:
+            raise ConfigurationError("max_line_width must be at least 64")
+        if self.page_width < 800 or self.page_height < 1_100:
+            raise ConfigurationError("synthetic pages must be at least 800 by 1100 pixels")
+        if 2 * self.page_margin + self.column_gutter >= self.page_width:
+            raise ConfigurationError("page margin and gutter leave no column content width")
+
+
+@dataclass(frozen=True, slots=True)
 class RecognizerConfig(StrictConfig):
     """Recognizer dimensions already fixed by the architecture."""
 

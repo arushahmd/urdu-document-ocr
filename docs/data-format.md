@@ -140,3 +140,29 @@ Applying an overlay returns new sample records. `valid` remains, `invalid` is ex
 `needs_review` is excluded unless `include_needs_review=True`. Tags are merged on retained derived
 records; unmentioned samples remain. Duplicate decisions, unknown sample IDs, and stale source
 fingerprints fail. Source manifests and images are never moved, edited, or deleted.
+
+## Canonical synthetic fixtures
+
+`data/sample/manifest.jsonl` uses the schema above without extensions. Every record is tagged
+`synthetic`, uses a stable `syn-line-NNNNNN` ID and a neutral `synthetic-document-NNN` group, and
+points once to a variable-width PNG beneath `lines/`. The grouped manifests under `splits/` use
+the same schema. `synthetic-fixture-vocabulary.json` uses the existing vocabulary schema and is
+derived only from the committed training split.
+
+`generation-manifest.json` is a separate generation-evidence document. It records
+`synthetic-v1`, frozen configuration and fingerprint, shaping capabilities, line records, page
+records, validation report, split evidence, and vocabulary fingerprint. A line record includes
+text/source hash, font identity/hash/size, master and derived seeds, dimensions, asymmetric
+padding, intensity values, blur/noise/skew values, operation order, relative image path, and PNG
+hash. It does not alter the training manifest schema.
+
+`page-ground-truth.json` uses schema version 1 and explicit half-open coordinates. Each page has
+a stable ID, layout family, relative path and image hash, dimensions, seeds, blank expectation,
+and ordered lines. Each line stores exact text/hash, its pre-rotation `composition_box`, final
+`output_box`, `line` or `spanning` kind, right/left column index (`0`/`1`) or `null`, and contiguous
+reading-order index.
+
+`text-provenance.json` records project-authored source records and code-point coverage.
+`provenance.json` records the font boundary and fixture/visual origins. `artifact-manifest.json`
+hashes every other file in the package by relative path, size, SHA-256, and logical role; it omits
+itself to avoid a recursive hash.

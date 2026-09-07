@@ -1,6 +1,6 @@
 # Current implementation source ledger
 
-Review date: 2026-09-06
+Review date: 2026-09-07
 Implementation rule: `REIMPLEMENT_FROM_CONCEPT`
 
 This ledger describes the provenance of the current public implementation. It records evidence
@@ -43,9 +43,16 @@ and engineering decisions; it does not offer legal conclusions.
 | Dataset-derived vocabulary persistence | Implemented in Phase 7 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written training-text character collection and strict JSON wrapper around the Phase 4 `Vocabulary` contract | No |
 | Immutable review overlays | Implemented in Phase 7 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written source-fingerprint validation, decision filtering, tag merging, and canonical JSONL persistence without filesystem mutation | No |
 | Phase 7 tests | Implemented in Phase 7 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Project-authored short Unicode strings and programmatically generated tiny geometric images only; no historical labels, vocabulary, or images | No |
+| Safe Urdu fixture text | Implemented in Phase 8 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Thirteen newly authored neutral phrases with per-source SHA-256 and code-point coverage in `data/sample/text-provenance.json` | No |
+| Synthetic line/page generator | Implemented in Phase 8 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written seeded composition, controlled degradation, safe-write, geometry, manifest, and artifact-hash orchestration | No |
+| Urdu complex-script shaping route | Used in Phase 8 | `EXTERNAL_LIBRARY` | uharfbuzz/HarfBuzz explicit RTL shaping and freetype-py/FreeType rasterization through documented public APIs | No |
+| Noto Nastaliq Urdu | Bundled in Phase 8 | `EXTERNAL_ASSET` | Unmodified `NotoNastaliqUrdu-v4.000` variable TTF from the authoritative release; exact archive/inner-file hashes and OFL-1.1 evidence stored at asset level | No |
+| Public synthetic fixtures and visual | Generated in Phase 8 | `CURRENT_GENERATED_ARTIFACT` | Deterministic output solely from the Phase 8 authored text, reviewed font, `synthetic-v1`, and frozen configuration | No |
+| Phase 8 tests | Implemented in Phase 8 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written provenance, shaping, line/page, regeneration, safe-output, metadata, and realistic vision integration checks | No |
 
 Planned libraries and their licensing/package implications are recorded in
 `dependency-review.md`. Listing a dependency does not incorporate its source into this repository
 or select a license for repository-owned code. Phases 5 through 7 were implemented without
 consulting or copying historical preprocessing, conversion, segmentation, layout, data-processing,
-split, vocabulary, review, notebook, or test source.
+split, vocabulary, review, synthetic generation, notebook, or test source. No historical text,
+font, image, crop, annotation, vocabulary, or generated sample is present in the Phase 8 fixtures.

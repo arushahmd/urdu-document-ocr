@@ -6,11 +6,11 @@ recognition, training, and evaluation contracts.
 ## Status
 
 This is an active, clean public reimplementation built in incremental verified phases. Through
-Phase 7 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
+Phase 8 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
 classical preprocessing, classical-CV line segmentation, conservative one/two-column layout,
-Urdu RTL reading order, and reproducible OCR dataset engineering. It does **not** yet provide
-synthetic public OCR fixtures, OCR text recognition, training, model inference, evaluation
-metrics, CLI business commands, or HTTP serving.
+Urdu RTL reading order, reproducible OCR dataset engineering, and provenance-cleared synthetic
+Urdu fixtures. It does **not** yet provide OCR text recognition, training, model inference,
+evaluation metrics, CLI business commands, or HTTP serving.
 
 ## Planned architecture
 
@@ -56,6 +56,11 @@ phase, with tested behavior, rather than created as empty scaffolding.
 - Portable relative dataset-path validation.
 - Safe JSON-compatible projections that exclude image pixel arrays and local filesystem paths.
 - Automated tests, Ruff checks, and a Python 3.11 CI workflow.
+- Deterministic variable-width Urdu line rendering through reviewed HarfBuzz/FreeType shaping.
+- Ten synthetic page/layout families with half-open ground truth, including RTL columns,
+  spanning bands, blank pages, near-blank pages, and mild skew.
+- A small safe public fixture package with project-authored text, grouped splits, a train-only
+  synthetic vocabulary, provenance records, and SHA-256 artifact inventory.
 
 ## Core API
 
@@ -99,6 +104,17 @@ training_vocabulary = build_vocabulary(split.train)
 Segmented document lines do not acquire transcriptions automatically. Dataset manifests describe
 separately labeled line images supplied by the caller.
 
+Synthetic fixtures can be regenerated without network access:
+
+```console
+python scripts/generate_sample_data.py --output data/sample --overwrite
+```
+
+The command writes only to the explicit destination and rejects unrelated existing files. See
+[synthetic data](docs/synthetic-data.md) and the [fixture package](data/sample/README.md).
+
+![Synthetic Urdu layout overlay](data/sample/visual/synthetic-layout-overlay.png)
+
 ## Provenance boundary
 
 This repository is a clean, self-contained public reimplementation informed by earlier
@@ -127,10 +143,9 @@ python -m pytest
 
 ## Roadmap
 
-1. Provenance-cleared synthetic Urdu fixtures.
-2. Trainable CNN-BiLSTM-CTC recognition and safe checkpoints.
-3. End-to-end inference, evaluation, CLI, and a thin reference API.
-4. Reproducible synthetic benchmarks and final publication audit.
+1. Trainable CNN-BiLSTM-CTC recognition and safe checkpoints.
+2. End-to-end inference, evaluation, CLI, and a thin reference API.
+3. Reproducible synthetic benchmarks and final publication audit.
 
 No production or accuracy claim is made at this stage. Repository licensing is intentionally
 unresolved; public visibility does not itself grant reuse rights.

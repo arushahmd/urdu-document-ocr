@@ -56,6 +56,20 @@ splitting, vocabulary construction, and review application do not move, edit, or
 images. Review application creates new sample values, and writing a derived manifest remains a
 separate explicit call. No malware-scanning claim is made.
 
+Phase 8 synthetic generation reads only explicit text, the reviewed bundled font, and local
+configuration. It performs no font/data download and makes no network request. HarfBuzz/FreeType
+capability, the bundled font hash, its asset provenance, canonical Unicode, glyph coverage, and
+output bounds fail closed. Generation requires an existing explicit non-root output directory;
+all generated paths are portable relative paths resolved beneath it. Traversal and symlink escape
+are rejected, unrelated existing files block generation, overwrite is explicit, and no directory
+or file is deleted automatically.
+
+The committed Urdu source phrases are current neutral fixture content, not private/historical
+transcriptions. Generated PNGs are minimal grayscale/RGB images without EXIF, GPS, usernames,
+paths, or text metadata. Public generation records contain stable IDs, relative paths, dimensions,
+parameters, and hashes—not machine paths. The bundled font is isolated with its own OFL-1.1 text
+and provenance; that license does not license repository-owned source code.
+
 ## Reporting concerns
 
 Potential vulnerabilities or accidental private-data inclusions should be reported privately to

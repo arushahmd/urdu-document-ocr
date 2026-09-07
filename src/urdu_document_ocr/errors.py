@@ -96,3 +96,9 @@ class ReviewOverlayError(UrduOCRError):
     """A review overlay is invalid, conflicting, unknown, or stale."""
 
     code = "review_overlay_error"
+
+
+class SyntheticDataError(UrduOCRError):
+    """Synthetic rendering or fixture generation failed a safety contract."""
+
+    code = "synthetic_data_error"

@@ -46,3 +46,7 @@ data/private/
 data/local/
 data/generated/
 generated-data/
+
+# Canonical reviewed fixtures remain tracked; other bulk synthetic outputs stay ignored.
+!data/sample/
+!data/sample/**

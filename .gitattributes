@@ -1,0 +1,8 @@
+# Canonical fixture hashes include bytes, so text artifacts must stay LF on every platform.
+data/sample/** text eol=lf
+data/sample/**/*.png binary
+
+# Preserve the exact reviewed upstream font and license bytes.
+src/urdu_document_ocr/assets/fonts/noto-nastaliq-urdu/*.ttf binary
+src/urdu_document_ocr/assets/fonts/noto-nastaliq-urdu/FONT_LICENSE.txt -text -whitespace
+src/urdu_document_ocr/assets/fonts/noto-nastaliq-urdu/provenance.json text eol=lf
