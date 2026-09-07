@@ -117,7 +117,8 @@ def test_repository_has_no_license_or_premature_modules() -> None:
         (REPOSITORY_ROOT / name).exists() for name in ("LICENSE", "LICENSE.md", "COPYING")
     )
     package = REPOSITORY_ROOT / "src" / "urdu_document_ocr"
-    assert not any((package / name).exists() for name in ("recognition", "training", "evaluation"))
+    assert not any((package / name).exists() for name in ("training", "evaluation"))
+    assert not (package / "recognition" / "inference.py").exists()
     assert not any((package / name).exists() for name in ("segmentation.py", "layout.py", "api.py"))
 
 
@@ -145,8 +146,8 @@ def test_public_files_have_no_private_paths_or_credential_values() -> None:
     assert findings == []
 
 
-def test_source_does_not_import_unsafe_serialization_or_future_frameworks() -> None:
-    forbidden_imports = {"joblib", "pickle", "torch"}
+def test_source_does_not_import_unsafe_serialization_or_unscoped_ml_frameworks() -> None:
+    forbidden_imports = {"joblib", "pickle"}
     findings: list[str] = []
     source_root = REPOSITORY_ROOT / "src"
     for path in source_root.rglob("*.py"):
@@ -160,6 +161,10 @@ def test_source_does_not_import_unsafe_serialization_or_future_frameworks() -> N
             for name in names:
                 if name in forbidden_imports:
                     findings.append(f"{name} imported by {path.relative_to(REPOSITORY_ROOT)}")
+                if name == "torch" and "recognition" not in path.relative_to(source_root).parts:
+                    findings.append(
+                        f"unscoped torch imported by {path.relative_to(REPOSITORY_ROOT)}"
+                    )
 
     assert findings == []
 

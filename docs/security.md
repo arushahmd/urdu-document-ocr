@@ -70,6 +70,13 @@ paths, or text metadata. Public generation records contain stable IDs, relative 
 parameters, and hashes—not machine paths. The bundled font is isolated with its own OFL-1.1 text
 and provenance; that license does not license repository-owned source code.
 
+Phase 9 recognition accepts only caller-provided in-memory tensors and grayscale arrays; it does
+not accept paths or remote URLs at the model boundary. The package includes no pretrained weights
+and performs no model, font, or data download. Checkpoint persistence and deserialization are not
+implemented, so the recognition path does not invoke `torch.load`, pickle, or arbitrary-code
+loading. No model binaries are tracked. Model, CTC, and decoder validation errors report only
+shape/class/count metadata, and recognition code does not log document pixels or text.
+
 ## Reporting concerns
 
 Potential vulnerabilities or accidental private-data inclusions should be reported privately to

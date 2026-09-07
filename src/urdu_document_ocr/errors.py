@@ -102,3 +102,27 @@ class SyntheticDataError(UrduOCRError):
     """Synthetic rendering or fixture generation failed a safety contract."""
 
     code = "synthetic_data_error"
+
+
+class RecognitionError(UrduOCRError):
+    """Recognition input or computation violates the public model contract."""
+
+    code = "recognition_error"
+
+
+class ModelInputError(RecognitionError):
+    """A tensor or line image violates the recognizer input contract."""
+
+    code = "model_input_error"
+
+
+class CTCAlignmentError(RecognitionError):
+    """CTC labels, lengths, or alignment feasibility are invalid."""
+
+    code = "ctc_alignment_error"
+
+
+class DecodingError(RecognitionError):
+    """Recognizer logits cannot be decoded with the supplied vocabulary."""
+
+    code = "decoding_error"

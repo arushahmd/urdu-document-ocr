@@ -18,7 +18,7 @@ The intended V1 is a single-process Python package. Vision, recognition, evaluat
 interface layers remain separable so each can be tested without inventing service
 infrastructure.
 
-## Implemented through Phase 7
+## Implemented through Phase 9
 
 - `urdu_document_ocr.types`: immutable structural records, validated image-array contracts,
   half-open geometry, vocabulary indexing/fingerprinting, and privacy-safe public projections.
@@ -33,6 +33,8 @@ infrastructure.
 - `urdu_document_ocr.data`: strict JSONL manifests, non-mutating dataset/image validation,
   deterministic document-grouped splitting, train-derived vocabulary, and immutable review
   overlays.
+- `urdu_document_ocr.recognition`: optional PyTorch CNN-BiLSTM-CTC logits, input normalization,
+  explicit alignment validation and loss, and greedy vocabulary decoding.
 
 RGB page images are `uint8[height,width,3]`. Preprocessed grayscale pages are
 `uint8[height,width]`; foreground masks are `bool[height,width]`. Page and reading-order indices
@@ -189,9 +191,37 @@ optional short notes/generic reviewer labels. Application returns a derived tupl
 by default, unresolved samples are excluded; retained tags are merged. It never edits a source
 manifest or moves/deletes images. Exact schemas are documented in `data-format.md`.
 
+## Recognition core
+
+Phase 9 implements the trainable but untrained line recognizer. Its fixed geometry is:
+
+```text
+[B,1,64,W]
+   ↓ four CNN blocks (two 3x3 Conv + GroupNorm + SiLU per block)
+[B,384,4,T]
+   ↓ mean(H), transpose
+[B,T,384]
+   ↓ packed 2-layer bidirectional LSTM
+[B,T,512]
+   ↓ Linear(512, C)
+[B,T,C]
+   ↓ CTC loss or greedy CTC decoding
+```
+
+The CNN channels are 64, 128, 256, and 384. Pooling is `(2,2)`, `(2,2)`, `(2,1)`,
+and `(2,1)`, so height stride is 16 and width stride is 4. The authoritative valid-length
+formula is `floor(floor(W / 2) / 2)`. Each sample is cropped to its declared valid width before
+convolution, and unsorted feature sequences are packed before the BiLSTM; right-side batch padding
+therefore cannot alter a sample's valid CNN boundary features or recurrent context.
+
+The model accepts only finite float32 tensors in `[-1,+1]` with white `+1`, black `-1`, height 64,
+minimum width 4, and configured maximum width 2048 by default. It emits raw logits rather than
+probabilities. Class zero is CTC blank; vocabulary characters occupy `1..N`; no UNK, PAD, BOS, or
+EOS class exists. See `recognizer.md` for the complete contract and limitations.
+
 ## Planned, not implemented
 
-- Phases 9–10: PyTorch CNN-BiLSTM-CTC recognition, training, and tensor-only checkpoints.
+- Phase 10: training orchestration and tensor-only checkpoints.
 - Phases 11–13: inference, assembly, metrics, benchmarks, CLI, and reference HTTP adapter.
 
 Future directories and imports do not exist until their phase supplies meaningful tested code.

@@ -49,10 +49,17 @@ and engineering decisions; it does not offer legal conclusions.
 | Noto Nastaliq Urdu | Bundled in Phase 8 | `EXTERNAL_ASSET` | Unmodified `NotoNastaliqUrdu-v4.000` variable TTF from the authoritative release; exact archive/inner-file hashes and OFL-1.1 evidence stored at asset level | No |
 | Public synthetic fixtures and visual | Generated in Phase 8 | `CURRENT_GENERATED_ARTIFACT` | Deterministic output solely from the Phase 8 authored text, reviewed font, `synthetic-v1`, and frozen configuration | No |
 | Phase 8 tests | Implemented in Phase 8 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written provenance, shaping, line/page, regeneration, safe-output, metadata, and realistic vision integration checks | No |
+| CNN-BiLSTM-CTC recognizer source | Implemented in Phase 9 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Independently written PyTorch modules from the frozen public contract; no historical model/config/comment/test source consulted or copied | No |
+| CRNN and CTC model family | Used in Phase 9 | `GENERAL_ALGORITHM` | Standard convolutional sequence recognition, bidirectional recurrence, and connectionist temporal classification concepts | No |
+| CNN width geometry and model-input normalization | Implemented in Phase 9 | `CURRENT_ORIGINAL_IMPLEMENTATION` | One exact pooling-length helper plus deterministic aspect-preserving grayscale conversion and `x / 127.5 - 1` mapping | No |
+| GroupNorm, SiLU, packed BiLSTM, and CTCLoss primitives | Used in Phase 9 | `EXTERNAL_LIBRARY` | PyTorch 2.14 public APIs; project composition, validation, and contracts are current-original | No |
+| Greedy CTC decoder and alignment feasibility checks | Implemented in Phase 9 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written collapse-before-blank-removal decoder and adjacent-repeat minimum-timestep validation | No |
+| Phase 9 tests | Implemented in Phase 9 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Programmatic tensors plus the provenance-cleared Phase 8 synthetic line/vocabulary; no expected recognition text or accuracy claim | No |
 
 Planned libraries and their licensing/package implications are recorded in
 `dependency-review.md`. Listing a dependency does not incorporate its source into this repository
-or select a license for repository-owned code. Phases 5 through 7 were implemented without
+or select a license for repository-owned code. Phases 5 through 9 were implemented without
 consulting or copying historical preprocessing, conversion, segmentation, layout, data-processing,
-split, vocabulary, review, synthetic generation, notebook, or test source. No historical text,
-font, image, crop, annotation, vocabulary, or generated sample is present in the Phase 8 fixtures.
+split, vocabulary, review, synthetic generation, recognizer, CTC, decoder, notebook, or test
+source. No historical text, font, image, crop, annotation, vocabulary, or generated sample is
+present in the Phase 8 fixtures, and no historical model artifact is present in Phase 9.

@@ -429,8 +429,12 @@ class RecognizerConfig(StrictConfig):
         _require_int("normalized_height", self.normalized_height, minimum=1)
         _require_int("max_width", self.max_width, minimum=1)
         _require_int("blank_index", self.blank_index, minimum=0)
+        if self.normalized_height != 64:
+            raise ConfigurationError("recognizer normalized_height must be 64")
         if self.max_width < self.normalized_height:
             raise ConfigurationError("max_width must be at least normalized_height")
+        if self.max_width > 2048:
+            raise ConfigurationError("recognizer max_width must be at most 2048")
         if self.blank_index != 0:
             raise ConfigurationError("CTC blank_index must be 0")
 

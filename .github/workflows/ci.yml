@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  quality:
+  quality-core:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -28,4 +28,30 @@ jobs:
       - name: Check formatting
         run: python -m ruff format --check .
       - name: Test
-        run: python -m pytest
+        run: >-
+          python -m pytest
+          --ignore=tests/test_recognition_model.py
+          --ignore=tests/test_ctc.py
+          --ignore=tests/test_decoding.py
+          --ignore=tests/test_phase9_integration.py
+
+  ml-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install official PyTorch CPU wheel and ML development extras
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "torch==2.14.0" --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e ".[ml,dev]"
+      - name: Test full package with coverage
+        run: python -m pytest --cov=urdu_document_ocr --cov-report=term-missing --cov-fail-under=85
+      - name: Verify installed dependencies
+        run: python -m pip check

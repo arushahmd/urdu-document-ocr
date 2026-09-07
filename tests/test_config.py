@@ -93,7 +93,10 @@ def test_segmentation_mapping_rejects_unknown_fields() -> None:
     "overrides",
     [
         {"normalized_height": 0},
+        {"normalized_height": 63},
+        {"normalized_height": 128, "max_width": 256},
         {"max_width": 0},
+        {"max_width": 2049},
         {"normalized_height": 128, "max_width": 64},
         {"blank_index": 1},
     ],

@@ -6,13 +6,15 @@ recognition, training, and evaluation contracts.
 ## Status
 
 This is an active, clean public reimplementation built in incremental verified phases. Through
-Phase 8 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
+Phase 9 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
 classical preprocessing, classical-CV line segmentation, conservative one/two-column layout,
 Urdu RTL reading order, reproducible OCR dataset engineering, and provenance-cleared synthetic
-Urdu fixtures. It does **not** yet provide OCR text recognition, training, model inference,
-evaluation metrics, CLI business commands, or HTTP serving.
+Urdu fixtures, plus an actual trainable PyTorch CNN-BiLSTM-CTC recognizer with variable-width
+inputs, CTC loss, and greedy decoding. The model is currently untrained. The project does **not**
+yet provide a trainer, checkpoints, trained public weights, document-level recognition, OCR
+quality results, CER/WER, CLI business commands, or HTTP serving.
 
-## Planned architecture
+## Architecture
 
 ```text
 document
@@ -26,8 +28,9 @@ document
   -> evaluation, Python API, CLI, and reference HTTP API
 ```
 
-Only the contracts shared by those layers exist today. Planned modules are added in their owning
-phase, with tested behavior, rather than created as empty scaffolding.
+The recognizer core now exists; document-level inference, assembly, training orchestration,
+evaluation, and interfaces remain planned. Modules are added in their owning phase with tested
+behavior rather than created as empty scaffolding.
 
 ## Current implemented scope
 
@@ -61,6 +64,13 @@ phase, with tested behavior, rather than created as empty scaffolding.
   spanning bands, blank pages, near-blank pages, and mild skew.
 - A small safe public fixture package with project-authored text, grouped splits, a train-only
   synthetic vocabulary, provenance records, and SHA-256 artifact inventory.
+- A trainable, randomly initialized PyTorch CNN-BiLSTM-CTC model accepting explicit valid widths.
+- Four GroupNorm/SiLU CNN blocks with exact width-to-timestep geometry, mean height collapse,
+  packed two-layer bidirectional LSTM sequences, and a vocabulary-bound character classifier.
+- Strict model-input normalization to grayscale `float32[1,64,W]` in `[-1,+1]`, with no silent
+  squeezing, cropping, or truncation of over-width lines.
+- Mean CTC loss with explicit repeated-label feasibility checks and vocabulary-bound greedy CTC
+  decoding that emits no fabricated confidence.
 
 ## Core API
 
@@ -83,7 +93,8 @@ regions = tuple(segment_page(page, SegmentationConfig()) for page in processed)
 The default preprocessing path uses Otsu and does not enable enhancement, morphology, or
 deskew. Segmentation consumes only the normalized foreground mask and returns ordered geometry,
 not recognized text. See [architecture details](docs/architecture.md) for exact limits and
-decision rules, and [OCR data format](docs/data-format.md) for labeled-data contracts.
+decision rules, [recognizer details](docs/recognizer.md) for the model contract, and
+[OCR data format](docs/data-format.md) for labeled-data contracts.
 
 Dataset operations are ordinary library APIs:
 
@@ -141,9 +152,20 @@ python -m ruff format --check .
 python -m pytest
 ```
 
+Core document/data functionality intentionally does not require PyTorch. Install the reviewed ML
+extra to use and test recognition:
+
+```console
+python -m pip install -e ".[ml,dev]"
+```
+
+CPU-only CI first resolves the official PyTorch CPU wheel channel and then installs the extra.
+Runtime code never selects a device or downloads weights; callers place the model and tensors on
+their chosen device.
+
 ## Roadmap
 
-1. Trainable CNN-BiLSTM-CTC recognition and safe checkpoints.
+1. Training orchestration and safe tensor-only checkpoints.
 2. End-to-end inference, evaluation, CLI, and a thin reference API.
 3. Reproducible synthetic benchmarks and final publication audit.
 
