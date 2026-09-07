@@ -18,7 +18,7 @@ The intended V1 is a single-process Python package. Vision, recognition, evaluat
 interface layers remain separable so each can be tested without inventing service
 infrastructure.
 
-## Implemented through Phase 6
+## Implemented through Phase 7
 
 - `urdu_document_ocr.types`: immutable structural records, validated image-array contracts,
   half-open geometry, vocabulary indexing/fingerprinting, and privacy-safe public projections.
@@ -30,6 +30,9 @@ infrastructure.
 - `urdu_document_ocr.vision`: grayscale enhancement, foreground thresholding, blank detection,
   optional modest deskew, connected-component line segmentation, one/two-column layout, and Urdu
   RTL reading order.
+- `urdu_document_ocr.data`: strict JSONL manifests, non-mutating dataset/image validation,
+  deterministic document-grouped splitting, train-derived vocabulary, and immutable review
+  overlays.
 
 RGB page images are `uint8[height,width,3]`. Preprocessed grayscale pages are
 `uint8[height,width]`; foreground masks are `bool[height,width]`. Page and reading-order indices
@@ -138,9 +141,53 @@ The optional `extract_line_crop` helper validates page identity and bounds, then
 copy from either grayscale pixels or the boolean foreground mask. `LineRegion` itself contains no
 page arrays and its public projection serializes geometry only.
 
+## ML data pipeline
+
+The implemented system now has two independent tracks:
+
+```text
+DOCUMENT: image/PDF -> PageImage -> PreprocessedPage -> ordered LineRegion geometry
+
+DATA: labeled PNG/JPEG line images -> JSONL manifest -> validation
+      -> document-grouped train/validation/test split -> train vocabulary -> review overlay
+```
+
+Manifest schema v1 requires `schema_version`, `sample_id`, `image_path`, `text`, and
+`document_id`; `page_id`, `line_index`, and `tags` are optional. Unknown top-level fields fail.
+Manifest parsing preserves record order and labels exactly. Canonical writing sorts by sample ID,
+uses compact readable UTF-8 with stable key order and a final newline, and requires explicit
+overwrite. Logical dataset identity is SHA-256 over those canonical records and is independent of
+input order, absolute paths, and filesystem timestamps.
+
+Full validation resolves each portable relative image path beneath a resolved dataset root,
+rejecting symlink escape. It safely verifies PNG/JPEG images with existing Pillow protections and
+reports rather than repairs Unicode, duplicate, conflict, dimension, and vocabulary findings.
+Statistics cover documents, image geometry, transcription/word lengths, samples per document,
+and exact Unicode code-point frequencies. Lightweight validation can skip filesystem decoding.
+
+The `nfc-v1` canonical contract preserves ZWNJ, punctuation, digits, diacritics, and distinct
+Urdu/Arabic letter forms. Training text must already be NFC, single-line, free of surrounding or
+noncanonical whitespace, and free of control/format characters other than ZWNJ. An explicit
+normalizer can produce NFC/single-space text for a new manifest; no reader silently invokes it.
+
+`group-greedy-v1` groups by `document_id`, sorts groups by descending size and seeded SHA-256
+tie-break, and assigns each indivisible group to the positive-ratio split minimizing total absolute
+deviation from requested sample targets. Exact assignment ties prefer train, validation, then test.
+Defaults are 80/10/10 with seed 1337. Results expose requested and achieved counts/ratios,
+document assignments, dataset identity, and a split fingerprint.
+
+Vocabulary is built from canonical training labels, includes spaces present in those labels, sorts
+characters by Unicode code point, reserves CTC index 0 for blank, and has no UNK. Validation/test
+unseen code points are reported instead of substituted. Strict JSON persistence revalidates the
+normalization policy, ordering, uniqueness, blank index, and fingerprint.
+
+Review decisions use `valid`, `invalid`, or `needs_review`, source-dataset hashes, safe tags, and
+optional short notes/generic reviewer labels. Application returns a derived tuple: invalid and,
+by default, unresolved samples are excluded; retained tags are merged. It never edits a source
+manifest or moves/deletes images. Exact schemas are documented in `data-format.md`.
+
 ## Planned, not implemented
 
-- Phase 7: JSONL manifests, validation, grouped splitting, and manifest-derived vocabulary.
 - Phase 8: provenance-cleared shaped Urdu synthetic fixtures.
 - Phases 9–10: PyTorch CNN-BiLSTM-CTC recognition, training, and tensor-only checkpoints.
 - Phases 11–13: inference, assembly, metrics, benchmarks, CLI, and reference HTTP adapter.

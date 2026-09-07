@@ -66,3 +66,33 @@ class SegmentationError(UrduOCRError):
     """A structurally valid preprocessed page could not be segmented."""
 
     code = "segmentation_error"
+
+
+class ManifestError(UrduOCRError):
+    """A JSONL manifest violates the public schema or safe I/O policy."""
+
+    code = "manifest_error"
+
+
+class DatasetValidationError(UrduOCRError):
+    """Dataset validation could not safely begin."""
+
+    code = "dataset_validation_error"
+
+
+class DatasetSplitError(UrduOCRError):
+    """A dataset cannot be assigned to deterministic document groups."""
+
+    code = "dataset_split_error"
+
+
+class VocabularyError(UrduOCRError):
+    """A vocabulary artifact or source transcription is invalid."""
+
+    code = "vocabulary_error"
+
+
+class ReviewOverlayError(UrduOCRError):
+    """A review overlay is invalid, conflicting, unknown, or stale."""
+
+    code = "review_overlay_error"

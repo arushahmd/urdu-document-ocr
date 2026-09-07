@@ -6,10 +6,11 @@ recognition, training, and evaluation contracts.
 ## Status
 
 This is an active, clean public reimplementation built in incremental verified phases. Through
-Phase 6 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
-classical preprocessing, classical-CV line segmentation, conservative one/two-column layout
-inference, and Urdu RTL reading order. It does **not** yet perform OCR text recognition,
-training, model inference, evaluation metrics, CLI business commands, or HTTP serving.
+Phase 7 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
+classical preprocessing, classical-CV line segmentation, conservative one/two-column layout,
+Urdu RTL reading order, and reproducible OCR dataset engineering. It does **not** yet provide
+synthetic public OCR fixtures, OCR text recognition, training, model inference, evaluation
+metrics, CLI business commands, or HTTP serving.
 
 ## Planned architecture
 
@@ -43,6 +44,10 @@ phase, with tested behavior, rather than created as empty scaffolding.
 - One-column and persistent-gutter two-column layout inference with right-column-first ordering.
 - Geometric spanning regions placed in vertical reading bands, including headings and footers.
 - Owned grayscale or foreground line-crop extraction from immutable `LineRegion` geometry.
+- Strict canonical UTF-8 JSONL manifests with root-contained PNG/JPEG validation.
+- Deterministic document-grouped train/validation/test splits with achieved-ratio evidence.
+- Train-derived Unicode vocabulary construction, persistence, and unseen-character reporting.
+- Immutable, source-fingerprinted review overlays with no image relocation or deletion.
 - Half-open bounding-box geometry with intersection, containment, clipping, and IoU.
 - Privacy-aware source, page, preprocessing, line-region, OCR-result, and dataset contracts.
 - Deterministic CTC vocabulary indexing and SHA-256 fingerprints.
@@ -73,7 +78,26 @@ regions = tuple(segment_page(page, SegmentationConfig()) for page in processed)
 The default preprocessing path uses Otsu and does not enable enhancement, morphology, or
 deskew. Segmentation consumes only the normalized foreground mask and returns ordered geometry,
 not recognized text. See [architecture details](docs/architecture.md) for exact limits and
-decision rules.
+decision rules, and [OCR data format](docs/data-format.md) for labeled-data contracts.
+
+Dataset operations are ordinary library APIs:
+
+```python
+from urdu_document_ocr import (
+    build_vocabulary,
+    read_manifest,
+    split_dataset,
+    validate_dataset,
+)
+
+samples = read_manifest("manifest.jsonl")
+report = validate_dataset(samples, dataset_root="dataset")
+split = split_dataset(samples)
+training_vocabulary = build_vocabulary(split.train)
+```
+
+Segmented document lines do not acquire transcriptions automatically. Dataset manifests describe
+separately labeled line images supplied by the caller.
 
 ## Provenance boundary
 
@@ -103,11 +127,10 @@ python -m pytest
 
 ## Roadmap
 
-1. Data manifests, validation, grouped splitting, and vocabulary workflows.
-2. Provenance-cleared synthetic Urdu fixtures.
-3. Trainable CNN-BiLSTM-CTC recognition and safe checkpoints.
-4. End-to-end inference, evaluation, CLI, and a thin reference API.
-5. Reproducible synthetic benchmarks and final publication audit.
+1. Provenance-cleared synthetic Urdu fixtures.
+2. Trainable CNN-BiLSTM-CTC recognition and safe checkpoints.
+3. End-to-end inference, evaluation, CLI, and a thin reference API.
+4. Reproducible synthetic benchmarks and final publication audit.
 
 No production or accuracy claim is made at this stage. Repository licensing is intentionally
 unresolved; public visibility does not itself grant reuse rights.

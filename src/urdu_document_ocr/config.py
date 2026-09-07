@@ -304,6 +304,28 @@ class SegmentationConfig(StrictConfig):
 
 
 @dataclass(frozen=True, slots=True)
+class DatasetSplitConfig(StrictConfig):
+    """Deterministic document-grouped dataset split policy."""
+
+    _config_name: ClassVar[str] = "dataset split"
+
+    train_ratio: float = 0.80
+    validation_ratio: float = 0.10
+    test_ratio: float = 0.10
+    seed: int = 1337
+
+    def __post_init__(self) -> None:
+        for name in ("train_ratio", "validation_ratio", "test_ratio"):
+            _require_number(name, getattr(self, name), minimum=0.0, inclusive=True)
+            if float(getattr(self, name)) > 1.0:
+                raise ConfigurationError(f"{name} must be at most 1.0")
+        ratio_sum = self.train_ratio + self.validation_ratio + self.test_ratio
+        if not math.isclose(ratio_sum, 1.0, rel_tol=0.0, abs_tol=1e-12):
+            raise ConfigurationError("dataset split ratios must sum to 1.0")
+        _require_int("seed", self.seed, minimum=0)
+
+
+@dataclass(frozen=True, slots=True)
 class RecognizerConfig(StrictConfig):
     """Recognizer dimensions already fixed by the architecture."""
 

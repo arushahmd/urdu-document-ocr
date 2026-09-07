@@ -39,6 +39,23 @@ extraction is explicit and returns an owned in-memory array. No recognized docum
 at this phase. Segmentation and layout emit no content logs; typed failure context contains only a
 source page number and stage name.
 
+Phase 7 treats dataset manifests and line images as untrusted input. Manifest parsing is strict
+UTF-8/JSONL with fixed fields and no arbitrary metadata object. Portable relative paths are
+resolved beneath a resolved dataset root; containment is checked after symlink resolution. Public
+errors and reports use issue codes, physical line numbers, and sample IDs without serializing the
+absolute dataset root.
+
+Line-image validation retains Pillow decompression-bomb protection, accepts decoded PNG/JPEG only,
+checks a 100-MiB encoded-file ceiling before decoding, and enforces a 50-million-pixel ceiling.
+Dataset fingerprints use logical records rather than filesystem paths or timestamps. Vocabulary,
+split metadata, and review overlays use JSON/JSONL and SHA-256; pickle and executable
+serialization remain prohibited.
+
+Writers require explicit overwrite and never create an unrequested output directory. Validation,
+splitting, vocabulary construction, and review application do not move, edit, or delete source
+images. Review application creates new sample values, and writing a derived manifest remains a
+separate explicit call. No malware-scanning claim is made.
+
 ## Reporting concerns
 
 Potential vulnerabilities or accidental private-data inclusions should be reported privately to

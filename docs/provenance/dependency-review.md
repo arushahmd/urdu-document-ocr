@@ -45,6 +45,10 @@ opencv-python-headless 4.14.0.94, and pypdfium2 5.13.0. The three new dependenci
 additional Python-package transitive dependency beyond OpenCV's existing NumPy requirement.
 Runtime code must not auto-download models, fonts, or datasets.
 
+Phase 7 adds no runtime or development dependency. Manifest, fingerprint, Unicode, split, and
+review behavior use the Python standard library; line-image validation reuses the already approved
+Pillow dependency.
+
 ## CI action review
 
 Phase 4 CI uses `actions/checkout@v6` and `actions/setup-python@v7`. The reviewed stable releases

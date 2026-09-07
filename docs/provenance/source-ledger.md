@@ -36,8 +36,16 @@ and engineering decisions; it does not offer legal conclusions.
 | Spanning-region and persistent-gutter inference | Implemented in Phase 6 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly designed central occupancy, bilateral support, paired-line, vertical-persistence, and gutter-crossing rules | No |
 | Urdu RTL reading-order assignment | Implemented in Phase 6 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written vertical-band ordering with explicit right-column-first semantics | No |
 | Phase 6 tests | Implemented in Phase 6 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Deterministic generated geometric masks and RGB pages; no external scan, font, transcription, or benchmark fixture | No |
+| JSONL manifest I/O and logical dataset fingerprints | Implemented in Phase 7 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written strict schema parsing, canonical UTF-8 writing, atomic replacement, and SHA-256 identity using Python standard-library APIs | No |
+| Unicode normalization and transcription validation | Implemented in Phase 7 | `GENERAL_ALGORITHM` | Unicode NFC through Python `unicodedata`; explicit whitespace/control policy independently implemented from the frozen design | No |
+| Dataset containment, image validation, and statistics | Implemented in Phase 7 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written resolved-root containment, bounded Pillow inspection, duplicate hashing, structured findings, and deterministic summaries | No |
+| `group-greedy-v1` document split | Implemented in Phase 7 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written frozen group-size ordering, seeded SHA-256 tie-break, global target-deviation assignment, and reproducibility metadata | No |
+| Dataset-derived vocabulary persistence | Implemented in Phase 7 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written training-text character collection and strict JSON wrapper around the Phase 4 `Vocabulary` contract | No |
+| Immutable review overlays | Implemented in Phase 7 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written source-fingerprint validation, decision filtering, tag merging, and canonical JSONL persistence without filesystem mutation | No |
+| Phase 7 tests | Implemented in Phase 7 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Project-authored short Unicode strings and programmatically generated tiny geometric images only; no historical labels, vocabulary, or images | No |
 
 Planned libraries and their licensing/package implications are recorded in
 `dependency-review.md`. Listing a dependency does not incorporate its source into this repository
-or select a license for repository-owned code. Phases 5 and 6 were implemented without consulting
-or copying historical preprocessing, conversion, segmentation, layout, notebook, or test source.
+or select a license for repository-owned code. Phases 5 through 7 were implemented without
+consulting or copying historical preprocessing, conversion, segmentation, layout, data-processing,
+split, vocabulary, review, notebook, or test source.

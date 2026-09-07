@@ -28,6 +28,8 @@ FORBIDDEN_SUFFIXES = {
 
 CONTENT_SUFFIXES = {".md", ".py", ".toml", ".yaml", ".yml"}
 HISTORICAL_SCAN_SUFFIXES = {".bmp", ".jpeg", ".jpg", ".pdf", ".png", ".tif", ".tiff"}
+DATASET_ARTIFACT_SUFFIXES = {".csv", ".jsonl", ".tsv"}
+HISTORICAL_VOCABULARY_STEMS = {"charset", "vocab", "vocabulary"}
 MAXIMUM_EXPECTED_FILE_BYTES = 1_000_000
 WINDOWS_ABSOLUTE_PATH = re.compile(r"(?<![A-Za-z0-9])[A-Za-z]:[\\/](?:[^\s`\"']+[\\/])+[^\s`\"']+")
 PRIVATE_HOME_PATH = re.compile(r"/home/[A-Za-z0-9._-]+/")
@@ -90,15 +92,32 @@ def test_candidate_tree_has_no_historical_scans_or_unexpected_large_files() -> N
     assert large == []
 
 
+def test_candidate_tree_has_no_historical_dataset_or_vocabulary_artifacts() -> None:
+    findings: list[str] = []
+    for path in candidate_files():
+        relative = path.relative_to(REPOSITORY_ROOT)
+        is_dataset_artifact = (
+            relative.parts[0].casefold() in {"data", "datasets"}
+            or path.suffix.casefold() in DATASET_ARTIFACT_SUFFIXES
+        )
+        is_vocabulary_artifact = (
+            path.stem.casefold() in HISTORICAL_VOCABULARY_STEMS
+            and path.suffix.casefold() in {".json", ".txt"}
+        )
+        if is_dataset_artifact or is_vocabulary_artifact:
+            findings.append(relative.as_posix())
+
+    assert findings == []
+
+
 def test_repository_has_no_license_or_premature_modules() -> None:
     assert not any(
         (REPOSITORY_ROOT / name).exists() for name in ("LICENSE", "LICENSE.md", "COPYING")
     )
     package = REPOSITORY_ROOT / "src" / "urdu_document_ocr"
-    assert not any(
-        (package / name).exists() for name in ("data", "recognition", "training", "evaluation")
-    )
+    assert not any((package / name).exists() for name in ("recognition", "training", "evaluation"))
     assert not any((package / name).exists() for name in ("segmentation.py", "layout.py", "api.py"))
+    assert not (package / "data" / "synthetic.py").exists()
 
 
 def test_public_files_have_no_private_paths_or_credential_values() -> None:
