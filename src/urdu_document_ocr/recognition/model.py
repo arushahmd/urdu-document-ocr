@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from hashlib import sha256
 
 import cv2
@@ -92,6 +93,51 @@ def prepare_line_image(
     tensor = torch.from_numpy(np.ascontiguousarray(resized)).to(torch.float32)
     tensor = tensor.div(127.5).sub(1.0).unsqueeze(0)
     return tensor, resized_width
+
+
+def pad_prepared_line_images(
+    images: Sequence[Tensor],
+    *,
+    max_width: int,
+) -> tuple[Tensor, Tensor]:
+    """Create the shared white-right-padded batch used by training and inference."""
+
+    values = tuple(images)
+    if not values:
+        raise ModelInputError("cannot pad an empty line-image batch")
+    if isinstance(max_width, bool) or not isinstance(max_width, int) or max_width < 4:
+        raise ModelInputError("max_width must be an integer of at least 4")
+
+    widths: list[int] = []
+    for image in values:
+        if (
+            not isinstance(image, Tensor)
+            or image.dtype != torch.float32
+            or image.device.type != "cpu"
+            or image.ndim != 3
+            or tuple(image.shape[:2]) != (1, NORMALIZED_HEIGHT)
+        ):
+            raise ModelInputError(
+                "prepared line images must be CPU float32 tensors with shape [1,64,width]"
+            )
+        width = int(image.shape[2])
+        if not MINIMUM_INPUT_WIDTH <= width <= max_width:
+            raise ModelInputError("prepared line width is outside the recognizer-supported bounds")
+        if not torch.isfinite(image).all() or image.min().item() < -1.0 or image.max().item() > 1.0:
+            raise ModelInputError("prepared line images must contain finite values within [-1,1]")
+        widths.append(width)
+
+    padded_width = ((max(widths) + WIDTH_STRIDE - 1) // WIDTH_STRIDE) * WIDTH_STRIDE
+    if padded_width > max_width:
+        raise ModelInputError("stride-rounded batch width exceeds the recognizer maximum")
+    batch = torch.full(
+        (len(values), 1, NORMALIZED_HEIGHT, padded_width),
+        1.0,
+        dtype=torch.float32,
+    )
+    for index, image in enumerate(values):
+        batch[index, :, :, : widths[index]] = image
+    return batch, torch.tensor(widths, dtype=torch.int64)
 
 
 class _ConvolutionBlock(nn.Sequential):

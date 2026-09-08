@@ -439,6 +439,18 @@ class RecognizerConfig(StrictConfig):
             raise ConfigurationError("CTC blank_index must be 0")
 
 
+@dataclass(frozen=True, slots=True)
+class InferenceConfig(StrictConfig):
+    """Minimal in-memory batching policy for checkpoint-backed inference."""
+
+    _config_name: ClassVar[str] = "inference"
+
+    batch_size: int = 16
+
+    def __post_init__(self) -> None:
+        _require_int("batch_size", self.batch_size, minimum=1)
+
+
 _DEVICE_PATTERN = re.compile(r"(?:cpu|cuda(?::[0-9]+)?)")
 
 

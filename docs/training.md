@@ -102,6 +102,13 @@ checks tensor names, shapes, dtypes, and finite values before mutation, then per
 loading. No optimizer state is serialized. Loading model weights can initialize another run, but
 this is not exact training resume.
 
+Phase 11 consumes this exact checkpoint without defining another format. `load_recognizer`
+constructs the configuration- and vocabulary-bound CRNN through the safe loader, validates the
+complete checkpoint, moves it to an explicit CPU or available CUDA device, selects evaluation
+mode, and retains it for repeated inference. See `inference.md` for lifecycle, batching, document
+assembly, and serialization behavior.
+
 The checked-in synthetic fixtures support only a temporary CPU engineering smoke test. Their tiny
 size and synthetic origin make them unsuitable for a quality claim. CER/WER, public benchmarking,
-canonical trained weights, and document-level inference remain later-phase work.
+and canonical trained weights remain later-phase work. Document-level inference is implemented,
+but it does not establish recognition quality.

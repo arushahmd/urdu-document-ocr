@@ -19,12 +19,20 @@ import urdu_document_ocr
 assert "torch" not in sys.modules
 assert "safetensors" not in sys.modules
 assert urdu_document_ocr.RecognizerConfig().normalized_height == 64
+assert callable(urdu_document_ocr.recognize_document)
+assert callable(urdu_document_ocr.document_to_json)
 try:
     urdu_document_ocr.CRNNRecognizer
 except ImportError as error:
     assert "urdu-document-ocr[ml]" in str(error)
 else:
     raise AssertionError("ML API access unexpectedly succeeded without torch")
+try:
+    urdu_document_ocr.load_recognizer
+except ImportError as error:
+    assert "urdu-document-ocr[ml]" in str(error)
+else:
+    raise AssertionError("checkpoint inference API access unexpectedly succeeded without torch")
 try:
     urdu_document_ocr.OCRLineDataset
 except ImportError as error:

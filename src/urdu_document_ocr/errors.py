@@ -144,3 +144,9 @@ class CheckpointError(TrainingError):
     """A checkpoint cannot be saved or loaded without violating integrity rules."""
 
     code = "checkpoint_error"
+
+
+class AssemblyError(UrduOCRError):
+    """OCR results cannot be assembled or written without losing structure."""
+
+    code = "assembly_error"

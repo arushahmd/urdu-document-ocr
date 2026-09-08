@@ -7,18 +7,19 @@ Document
   -> ingestion
   -> preprocessing
   -> segmentation and one/two-column layout
-  -> ordered Urdu line crops
-  -> CNN-BiLSTM-CTC recognizer
-  -> ordered line results
-  -> page and document assembly
-  -> evaluation and public interfaces
+  -> ordered grayscale line crops
+  -> checkpoint-backed CNN-BiLSTM-CTC recognizer
+  -> greedy CTC decode
+  -> ordered line and page assembly
+  -> document TXT/JSON assembly
+  -> evaluation and public interfaces (planned)
 ```
 
 The intended V1 is a single-process Python package. Vision, recognition, evaluation, and
 interface layers remain separable so each can be tested without inventing service
 infrastructure.
 
-## Implemented through Phase 10
+## Implemented through Phase 11
 
 - `urdu_document_ocr.types`: immutable structural records, validated image-array contracts,
   half-open geometry, vocabulary indexing/fingerprinting, and privacy-safe public projections.
@@ -37,6 +38,10 @@ infrastructure.
   explicit alignment validation and loss, and greedy vocabulary decoding.
 - `urdu_document_ocr.training`: validated line datasets, variable-width batching, deterministic
   DataLoaders, AdamW optimization, validation/early stopping, and strict safetensors checkpoints.
+- `urdu_document_ocr.recognition.inference`: reusable checkpoint loading, CPU/explicit-CUDA
+  execution, dynamic line batches, and greedy decoding under inference mode.
+- `urdu_document_ocr.pipeline` and `document.assembly`: sequential image/PDF OCR, immutable
+  line/page/document results, blank-page preservation, and deterministic UTF-8 TXT/JSON output.
 
 RGB page images are `uint8[height,width,3]`. Preprocessed grayscale pages are
 `uint8[height,width]`; foreground masks are `bool[height,width]`. Page and reading-order indices
@@ -239,9 +244,37 @@ width violations, and impossible CTC alignments before output creation. Only the
 validation loss is persisted. Optimizer state is deliberately absent, so exact resume is not
 claimed.
 
+## Checkpoint-backed inference pipeline
+
+```text
+PNG/JPEG/PDF
+  -> bounded ingestion
+  -> grayscale preprocessing and blank decision
+  -> segmentation plus RTL layout
+  -> ordered grayscale crops
+  -> shared height-64 preparation and white-right-padded batches
+  -> loaded CRNN in eval/inference mode
+  -> greedy CTC decoding
+  -> LineOCRResult -> PageOCRResult -> DocumentOCRResult
+  -> UTF-8 TXT / deterministic JSON
+```
+
+Checkpoint construction and validation remain owned by the training checkpoint module. The
+inference wrapper loads once, retains only the validated in-memory model/vocabulary/configuration,
+and reuses it across pages and documents. The orchestration layer contains no image-processing or
+model internals; it consumes the recognizer protocol, which also permits deterministic test
+recognizers without changing production code.
+
+Page segmentation order is never recomputed. Grayscale crops—not boolean foreground masks—enter
+the recognizer. Lines join with one newline and every adjacent page joins with two newlines. Blank
+pages remain in the page tuple and contribute empty text between their page separators. Pipeline
+recognition is fail-closed: structural, checkpoint, invalid-line, or model errors abort rather
+than becoming silent empty strings. Public JSON contains text and geometry only.
+
 ## Planned, not implemented
 
-- Phases 11–13: inference, assembly, metrics, benchmarks, CLI, and reference HTTP adapter.
+- Phase 12: evaluation metrics, error analysis, and benchmark freeze.
+- Phase 13: CLI and reference HTTP adapter.
 
 Future directories and imports do not exist until their phase supplies meaningful tested code.
 

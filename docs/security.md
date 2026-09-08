@@ -93,6 +93,20 @@ mutation. Current source imports neither pickle nor joblib and never calls `torc
 state is not persisted. Safetensors prevents Python object deserialization but does not make an
 arbitrary model, tensor allocation, or surrounding filesystem inherently trustworthy.
 
+Phase 11 inference constructs models only through that validated Phase 10 checkpoint path. It
+never calls `torch.load`, pickle, or joblib and never accepts an alternate executable checkpoint
+format. CPU is the default; CUDA must be explicit and available, with no silent fallback. Models
+remain loaded for reuse, run in evaluation and inference mode, and expose no tensors or checkpoint
+paths in document results.
+
+The pipeline extracts only owned grayscale crops and processes pages sequentially. Default logs
+contain structural page/line counts and a safe model fingerprint only; OCR text, pixels, logits,
+raw image bytes, source/checkpoint paths, and device/host details are not logged. Public JSON
+contains deterministic text and region geometry without images, tensors, local paths, weights, or
+private machine metadata. TXT contains only assembled text. Both writers require an explicit
+destination under an existing regular directory, reject symbolic-link targets, use atomic
+same-directory replacement, and deny overwrite unless the caller opts in.
+
 ## Reporting concerns
 
 Potential vulnerabilities or accidental private-data inclusions should be reported privately to

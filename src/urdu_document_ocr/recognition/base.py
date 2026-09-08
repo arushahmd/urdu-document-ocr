@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
+import numpy as np
 import torch
+from numpy.typing import NDArray
 from torch import Tensor
 
 from urdu_document_ocr.config import RecognizerConfig
 from urdu_document_ocr.errors import ModelInputError
-from urdu_document_ocr.types import Vocabulary
+from urdu_document_ocr.types import OCRPrediction, Vocabulary
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,7 +41,7 @@ class RecognizerOutput:
 
 
 class OCRRecognizer(Protocol):
-    """Structural contract for a vocabulary-bound trainable logit recognizer."""
+    """Reusable image-to-prediction boundary consumed by the document pipeline."""
 
     config: RecognizerConfig
     vocabulary: Vocabulary
@@ -47,5 +50,10 @@ class OCRRecognizer(Protocol):
     def fingerprint(self) -> str:
         """Return the architecture/configuration/vocabulary identity."""
 
-    def __call__(self, images: Tensor, valid_widths: Tensor) -> RecognizerOutput:
-        """Produce raw CTC logits without applying softmax or decoding."""
+    def recognize_batch(
+        self,
+        images: Sequence[NDArray[np.uint8]],
+        *,
+        batch_size: int,
+    ) -> tuple[OCRPrediction, ...]:
+        """Recognize grayscale lines in their supplied order."""

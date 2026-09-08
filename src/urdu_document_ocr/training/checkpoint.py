@@ -413,3 +413,24 @@ def load_checkpoint(
     except RuntimeError as error:
         raise CheckpointError("checkpoint tensors could not be loaded strictly") from error
     return metadata
+
+
+def load_checkpoint_model(
+    checkpoint_directory: str | os.PathLike[str],
+) -> tuple[CRNNRecognizer, CheckpointMetadata]:
+    """Construct and strictly load the model described by a safe checkpoint."""
+
+    checkpoint = _validated_checkpoint_directory(checkpoint_directory)
+    metadata = _read_metadata(checkpoint / "metadata.json")
+    try:
+        config = RecognizerConfig.from_mapping(metadata.recognizer_config)
+        vocabulary = load_vocabulary(checkpoint / "vocabulary.json")
+        model = CRNNRecognizer(vocabulary, config)
+    except CheckpointError:
+        raise
+    except Exception as error:
+        raise CheckpointError("checkpoint model could not be constructed safely") from error
+    verified_metadata = load_checkpoint(checkpoint, model)
+    if verified_metadata != metadata:
+        raise CheckpointError("checkpoint metadata changed during model loading")
+    return model, verified_metadata

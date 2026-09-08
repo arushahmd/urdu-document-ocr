@@ -25,9 +25,8 @@ from urdu_document_ocr.recognition import (
     prepare_line_image,
     validate_ctc_alignment,
 )
+from urdu_document_ocr.recognition.model import pad_prepared_line_images
 from urdu_document_ocr.types import DatasetSample, Vocabulary
-
-_WIDTH_STRIDE = 4
 
 
 @dataclass(frozen=True, slots=True)
@@ -154,7 +153,6 @@ def collate_ocr_batch(
     if isinstance(max_width, bool) or not isinstance(max_width, int) or max_width < 4:
         raise TrainingDataError("max_width must be an integer of at least 4")
     sample_ids: list[str] = []
-    widths: list[int] = []
     targets: list[Tensor] = []
     for item in values:
         if not isinstance(item, OCRLineItem):
@@ -190,18 +188,17 @@ def collate_ocr_batch(
         if torch.any(item.target <= 0) or torch.any(item.target >= class_count):
             raise TrainingDataError("target indexes must be valid nonblank classifier indexes")
         sample_ids.append(item.sample_id)
-        widths.append(item.valid_width)
         targets.append(item.target)
 
-    padded_width = ((max(widths) + _WIDTH_STRIDE - 1) // _WIDTH_STRIDE) * _WIDTH_STRIDE
-    if padded_width > max_width:
-        raise TrainingDataError("stride-rounded batch width exceeds the recognizer maximum")
-    images = torch.full((len(values), 1, 64, padded_width), 1.0, dtype=torch.float32)
-    for index, item in enumerate(values):
-        images[index, :, :, : item.valid_width] = item.image
+    try:
+        images, valid_widths = pad_prepared_line_images(
+            [item.image for item in values], max_width=max_width
+        )
+    except ModelInputError as error:
+        raise TrainingDataError("line images could not be padded for the recognizer") from error
     return OCRBatch(
         images=images,
-        valid_widths=torch.tensor(widths, dtype=torch.int64),
+        valid_widths=valid_widths,
         targets=torch.cat(targets),
         target_lengths=torch.tensor([target.numel() for target in targets], dtype=torch.int64),
         sample_ids=tuple(sample_ids),

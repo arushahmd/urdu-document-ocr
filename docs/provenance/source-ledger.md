@@ -1,6 +1,6 @@
 # Current implementation source ledger
 
-Review date: 2026-09-07
+Review date: 2026-09-08
 Implementation rule: `REIMPLEMENT_FROM_CONCEPT`
 
 This ledger describes the provenance of the current public implementation. It records evidence
@@ -62,6 +62,12 @@ and engineering decisions; it does not offer legal conclusions.
 | AdamW and PyTorch DataLoader | Used in Phase 10 | `EXTERNAL_LIBRARY` | PyTorch 2.14 public optimizer, DataLoader, generator, and gradient-clipping APIs; orchestration and policy are current-original | No |
 | safetensors | Used in Phase 10 | `EXTERNAL_LIBRARY` | safetensors 0.8 public PyTorch save/load APIs for tensor-only model weights; Apache-2.0 | No |
 | Phase 10 tests | Implemented in Phase 10 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Programmatic tensors/images and the provenance-cleared Phase 8 fixtures; all checkpoints are temporary and no quality assertion is made | No |
+| Checkpoint-backed recognizer loading | Implemented in Phase 11 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written lifecycle wrapper around the current strict Phase 10 loader, explicit device policy, and evaluation/inference mode | No |
+| Ordered line batching | Implemented in Phase 11 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written inference batching that shares the current normalization and white-right-padding primitive and never width-sorts inputs | No |
+| Page OCR orchestration | Implemented in Phase 11 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written composition of current segmentation, grayscale crop, recognizer protocol, result, and assembly contracts | No |
+| Document OCR orchestration | Implemented in Phase 11 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written sequential page loop over bounded ingestion and preprocessing with stable blank-page retention | No |
+| Deterministic result assembly and TXT/JSON projections | Implemented in Phase 11 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written newline policy, privacy-safe typed projection, UTF-8 serialization, and explicit atomic output helpers | No |
+| Phase 11 tests and examples | Implemented in Phase 11 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written programmatic fakes, current Phase 8 fixtures, temporary safetensors checkpoints, and public-API-only examples; no text-quality assertion | No |
 
 Planned libraries and their licensing/package implications are recorded in
 `dependency-review.md`. Listing a dependency does not incorporate its source into this repository
@@ -69,6 +75,9 @@ or select a license for repository-owned code. Phases 5 through 9 were implement
 consulting or copying historical preprocessing, conversion, segmentation, layout, data-processing,
 split, vocabulary, review, synthetic generation, recognizer, CTC, decoder, notebook, or test
 source. Phase 10 training, optimizer, batching, early-stopping, and checkpoint source was also
-written without consulting or copying historical trainers, notebooks, loaders, or utilities. No
-historical text, font, image, crop, annotation, vocabulary, generated sample, checkpoint, or model
-artifact is present.
+written without consulting or copying historical trainers, notebooks, loaders, or utilities.
+Phase 11 recognizer loading, line batching, page/document orchestration, assembly, serialization,
+tests, and examples were implemented from the frozen current-project contracts without inspecting
+or copying historical prediction, document OCR, output, model-loading, web-handler, notebook, or
+path code. No historical text, font, image, crop, annotation, vocabulary, generated sample,
+checkpoint, or model artifact is present.

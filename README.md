@@ -1,18 +1,19 @@
 # Urdu Document OCR
 
-Foundation for a reproducible Urdu document OCR system with typed document, vision,
-recognition, training, and evaluation contracts.
+A reproducible Urdu document OCR system with typed document vision, CRNN training, safe
+checkpoints, and structured checkpoint-backed inference.
 
 ## Status
 
 This is an active, clean public reimplementation built in incremental verified phases. Through
-Phase 10 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
+Phase 11 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
 classical preprocessing, classical-CV line segmentation, conservative one/two-column layout,
 Urdu RTL reading order, reproducible OCR dataset engineering, and provenance-cleared synthetic
 Urdu fixtures, a trainable PyTorch CNN-BiLSTM-CTC recognizer, a validated AdamW training path,
-validation-loss selection, and safetensors checkpoints. No canonical trained model is published.
-The project does **not** yet provide document-level recognition, OCR quality results, CER/WER,
-CLI business commands, or HTTP serving.
+validation-loss selection, safetensors checkpoints, checkpoint-backed line recognition, and
+document-level OCR with text/geometry output. No canonical trained model is published. The
+project does **not** yet provide OCR quality results, CER/WER, CLI business commands, or HTTP
+serving.
 
 ## Architecture
 
@@ -21,16 +22,17 @@ document
   -> validated ingestion
   -> preprocessing and blank-page detection
   -> line segmentation and one/two-column RTL ordering
-  -> line crops
-  -> CNN-BiLSTM-CTC recognition
+  -> ordered grayscale line crops
+  -> checkpoint-backed CNN-BiLSTM-CTC recognition
+  -> greedy CTC decode
   -> ordered line and page results
-  -> document assembly
-  -> evaluation, Python API, CLI, and reference HTTP API
+  -> document TXT/JSON assembly
+  -> evaluation, CLI, and reference HTTP API (planned)
 ```
 
-The recognizer and training core now exist; document-level inference, assembly, evaluation, and
-interfaces remain planned. Modules are added in their owning phase with tested
-behavior rather than created as empty scaffolding.
+The recognizer, training, inference, and assembly paths are implemented. Evaluation and the
+CLI/HTTP adapters remain planned. Modules are added in their owning phase with tested behavior
+rather than created as empty scaffolding.
 
 ## Current implemented scope
 
@@ -75,6 +77,16 @@ behavior rather than created as empty scaffolding.
   fixed-rate AdamW optimization, mutation-free validation, and exact early stopping.
 - Best-validation-loss checkpoints with safetensors weights, strict JSON metadata/vocabulary,
   SHA-256 integrity checks, atomic replacement, and no serialized optimizer state.
+- Reusable checkpoint loading with exact model/configuration/vocabulary validation, explicit CPU
+  or available-CUDA selection, evaluation mode, and inference mode.
+- Single and dynamically batched grayscale line recognition using the same normalization and
+  white-right-padding contract as training, with order-preserving greedy CTC decoding.
+- End-to-end image/PDF OCR orchestration that preserves Phase 6 RTL/spanning order and retains
+  blank pages at their original indexes.
+- Immutable `LineOCRResult`, `PageOCRResult`, and `DocumentOCRResult` assembly with one newline
+  between lines and two newline separators between every adjacent page.
+- Deterministic Unicode-preserving TXT and JSON projections plus explicit, atomic, no-overwrite
+  output helpers that serialize no images, tensors, local paths, or model internals.
 
 ## Core API
 
@@ -103,6 +115,25 @@ decision rules, [recognizer details](docs/recognizer.md) for the model contract,
 The optional ML extra also provides the Python-only training API documented in
 [training and checkpoints](docs/training.md). It requires explicit manifests, vocabulary, dataset
 root, and output directory; no user-facing training CLI exists yet.
+
+Checkpoint-backed inference is also a Python API and loads the model once for reuse:
+
+```python
+from urdu_document_ocr import (
+    document_to_json,
+    load_recognizer,
+    recognize_document,
+)
+
+recognizer = load_recognizer("run-output/best", device="cpu")
+result = recognize_document("scan.pdf", recognizer)
+json_text = document_to_json(result)
+```
+
+The caller must supply a compatible checkpoint; the repository does not bundle or download one.
+See [checkpoint-backed inference](docs/inference.md) for batching, blank-page, failure, text, and
+JSON contracts. The examples under `examples/` call the same public API and require explicit input,
+checkpoint, and output paths.
 
 Dataset operations are ordinary library APIs:
 
@@ -168,14 +199,15 @@ python -m pip install -e ".[ml,dev]"
 ```
 
 CPU-only CI first resolves the official PyTorch CPU wheel channel and then installs the extra.
-Runtime code never downloads weights. Training defaults to CPU and accepts an explicit CUDA device;
-an unavailable configured CUDA device fails without fallback.
+Runtime code never downloads weights. Training and inference default to CPU and accept an explicit
+CUDA device; an unavailable configured CUDA device fails without fallback.
 
 ## Roadmap
 
-1. End-to-end inference and document assembly.
-2. Evaluation, CLI, and a thin reference API.
-3. Reproducible synthetic benchmarks and final publication audit.
+1. CER/WER evaluation, error analysis, and reproducible benchmark freeze.
+2. CLI and thin reference API adapters over the existing Python pipeline.
+3. Final recruiter documentation and publication audit.
 
-No production or accuracy claim is made at this stage. Repository licensing is intentionally
-unresolved; public visibility does not itself grant reuse rights.
+No OCR accuracy, CER, WER, benchmark, production, or performance claim is made at this stage.
+Evaluation remains Phase 12 and CLI/API adapters remain Phase 13. Repository licensing is
+intentionally unresolved; public visibility does not itself grant reuse rights.

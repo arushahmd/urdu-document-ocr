@@ -13,6 +13,12 @@ from urdu_document_ocr.recognition.ctc import (
     validate_ctc_alignment,
 )
 from urdu_document_ocr.recognition.decoding import greedy_ctc_decode
+from urdu_document_ocr.recognition.inference import (
+    LoadedRecognizer,
+    load_recognizer,
+    recognize_line,
+    recognize_lines,
+)
 from urdu_document_ocr.recognition.model import (
     CRNNRecognizer,
     input_width_to_timesteps,
@@ -22,12 +28,16 @@ from urdu_document_ocr.recognition.model import (
 __all__ = [
     "CRNNRecognizer",
     "CTCAlignmentReport",
+    "LoadedRecognizer",
     "OCRRecognizer",
     "RecognizerOutput",
     "compute_ctc_loss",
     "greedy_ctc_decode",
     "input_width_to_timesteps",
+    "load_recognizer",
     "minimum_ctc_timesteps",
     "prepare_line_image",
+    "recognize_line",
+    "recognize_lines",
     "validate_ctc_alignment",
 ]

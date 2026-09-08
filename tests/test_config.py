@@ -4,6 +4,7 @@ import pytest
 
 from urdu_document_ocr.config import (
     ConfigurationError,
+    InferenceConfig,
     InputLimitsConfig,
     RecognizerConfig,
     SegmentationConfig,
@@ -42,6 +43,14 @@ def test_recognizer_defaults_are_frozen_phase_3_values() -> None:
     assert RecognizerConfig() == RecognizerConfig(
         normalized_height=64, max_width=2048, blank_index=0
     )
+
+
+def test_inference_config_has_one_strict_positive_batch_field() -> None:
+    assert InferenceConfig() == InferenceConfig.from_mapping({"batch_size": 16})
+    with pytest.raises(ConfigurationError, match="batch_size"):
+        InferenceConfig(batch_size=0)
+    with pytest.raises(ConfigurationError, match="unknown inference"):
+        InferenceConfig.from_mapping({"device": "auto"})
 
 
 def test_segmentation_defaults_are_scale_relative_and_conservative() -> None:

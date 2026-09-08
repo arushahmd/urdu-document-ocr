@@ -9,6 +9,7 @@ from urdu_document_ocr.training.checkpoint import (
     CHECKPOINT_SCHEMA_VERSION,
     CheckpointMetadata,
     load_checkpoint,
+    load_checkpoint_model,
     save_checkpoint,
 )
 from urdu_document_ocr.training.dataset import (
@@ -39,6 +40,7 @@ __all__ = [
     "TrainingResult",
     "collate_ocr_batch",
     "load_checkpoint",
+    "load_checkpoint_model",
     "save_checkpoint",
     "set_training_seed",
     "train_model",

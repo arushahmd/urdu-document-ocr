@@ -52,9 +52,9 @@ and enlargements use cubic interpolation. Resized width uses exact integer half-
 The function rejects normalized widths below 4 or above the configured maximum (2048 by default).
 It never squeezes, crops, or truncates a long line. Pixels map to float32 with `x / 127.5 - 1`, so
 black 0 maps to -1 and white 255 maps to +1. The result is `[1,64,W]` plus integer valid width.
-Phase 10 `OCRLineDataset` calls this function after root-contained PNG/JPEG decoding. Its dynamic
-collator right-pads to the batch maximum rounded to width stride four with value +1 and retains
-each valid width explicitly.
+Phase 10 `OCRLineDataset` and Phase 11 checkpoint-backed inference both call this function. Their
+shared batching primitive right-pads to the batch maximum rounded to width stride four with value
++1 and retains each valid width explicitly.
 
 `CRNNRecognizer.forward` accepts finite float32 `[B,1,64,W_pad]` values in `[-1,+1]` and a CPU
 int64 `[B]` valid-width vector. It does not infer width from white pixels. Each item is cropped to
@@ -101,5 +101,8 @@ device selection.
 Phase 10 connects the model to validated datasets, deterministic DataLoaders, fixed-rate AdamW,
 validation CTC loss, and best-only safetensors checkpoints. Checkpoint identity binds this exact
 architecture/configuration and vocabulary before strict tensor loading. See `training.md` for the
-full contract. Beam search, a language model, document inference, CER/WER, and trained public
-weights remain absent; greedy output from a random or smoke-trained model has no quality meaning.
+full contract. Phase 11's `LoadedRecognizer` is a separate inference wrapper around one verified
+`CRNNRecognizer`: it owns device placement, evaluation/inference mode, ordered batching, and
+greedy decoding while keeping the underlying model focused on logits. See `inference.md` for the
+public line and document APIs. Beam search, a language model, CER/WER, and trained public weights
+remain absent; greedy output from a random or smoke-trained model has no quality meaning.

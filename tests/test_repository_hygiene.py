@@ -112,14 +112,18 @@ def test_candidate_tree_has_no_historical_dataset_or_vocabulary_artifacts() -> N
     assert findings == []
 
 
-def test_repository_has_no_license_or_premature_modules() -> None:
+def test_repository_has_no_license_or_post_phase11_modules() -> None:
     assert not any(
         (REPOSITORY_ROOT / name).exists() for name in ("LICENSE", "LICENSE.md", "COPYING")
     )
     package = REPOSITORY_ROOT / "src" / "urdu_document_ocr"
     assert not (package / "evaluation").exists()
-    assert not (package / "recognition" / "inference.py").exists()
-    assert not any((package / name).exists() for name in ("segmentation.py", "layout.py", "api.py"))
+    assert (package / "recognition" / "inference.py").is_file()
+    assert (package / "document" / "assembly.py").is_file()
+    assert (package / "pipeline.py").is_file()
+    assert not any(
+        (package / name).exists() for name in ("segmentation.py", "layout.py", "cli.py", "api.py")
+    )
 
 
 def test_public_files_have_no_private_paths_or_credential_values() -> None:
