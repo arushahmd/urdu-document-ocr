@@ -12,14 +12,15 @@ Document
   -> greedy CTC decode
   -> ordered line and page assembly
   -> document TXT/JSON assembly
-  -> evaluation and public interfaces (planned)
+  -> CER/WER evaluation, error analysis, and frozen synthetic benchmarks
+  -> public interfaces (planned)
 ```
 
 The intended V1 is a single-process Python package. Vision, recognition, evaluation, and
 interface layers remain separable so each can be tested without inventing service
 infrastructure.
 
-## Implemented through Phase 11
+## Implemented through Phase 12
 
 - `urdu_document_ocr.types`: immutable structural records, validated image-array contracts,
   half-open geometry, vocabulary indexing/fingerprinting, and privacy-safe public projections.
@@ -42,6 +43,12 @@ infrastructure.
   execution, dynamic line batches, and greedy decoding under inference mode.
 - `urdu_document_ocr.pipeline` and `document.assembly`: sequential image/PDF OCR, immutable
   line/page/document results, blank-page preservation, and deterministic UTF-8 TXT/JSON output.
+- `urdu_document_ocr.evaluation`: exact-string Levenshtein alignment, standard CER/WER, corpus
+  aggregation, deterministic error analysis, checkpoint evaluation, synthetic vision scoring,
+  and frozen benchmark integrity verification.
+
+The core technical architecture is now nearly complete. Evaluation and the two synthetic
+benchmark layers are implemented; CLI and thin HTTP API adapters remain planned for Phase 13.
 
 RGB page images are `uint8[height,width,3]`. Preprocessed grayscale pages are
 `uint8[height,width]`; foreground masks are `bool[height,width]`. Page and reading-order indices

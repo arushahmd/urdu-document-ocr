@@ -1,5 +1,16 @@
 # OCR training and safe checkpoints
 
+## Benchmark selection boundary
+
+The frozen synthetic recognition benchmark invokes this same trainer without a second training
+stack. It selects the best epoch solely by minimum validation CTC loss, then evaluates the held-
+out test partition after training and checkpoint selection are complete. Test labels and
+predictions never affect model selection or configuration.
+
+Benchmark-generated line images and the best safetensors checkpoint live only in an explicit
+temporary work directory. Compact safe result JSON is retained, while the checkpoint and bulk
+images are removed and no canonical model weights are committed.
+
 Phase 10 provides a Python API for training the current CNN-BiLSTM-CTC recognizer from caller
 supplied, canonical line-image manifests. It proves the engineering path; it does not provide a
 trained public model or evidence of OCR quality.

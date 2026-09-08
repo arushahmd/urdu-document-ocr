@@ -1,19 +1,19 @@
 # Urdu Document OCR
 
 A reproducible Urdu document OCR system with typed document vision, CRNN training, safe
-checkpoints, and structured checkpoint-backed inference.
+checkpoints, checkpoint-backed inference, exact evaluation, and frozen synthetic benchmarks.
 
 ## Status
 
 This is an active, clean public reimplementation built in incremental verified phases. Through
-Phase 11 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
+Phase 12 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
 classical preprocessing, classical-CV line segmentation, conservative one/two-column layout,
 Urdu RTL reading order, reproducible OCR dataset engineering, and provenance-cleared synthetic
 Urdu fixtures, a trainable PyTorch CNN-BiLSTM-CTC recognizer, a validated AdamW training path,
 validation-loss selection, safetensors checkpoints, checkpoint-backed line recognition, and
-document-level OCR with text/geometry output. No canonical trained model is published. The
-project does **not** yet provide OCR quality results, CER/WER, CLI business commands, or HTTP
-serving.
+document-level OCR with text/geometry output, standard CER/WER and exact-match evaluation,
+deterministic error analysis, and two frozen synthetic benchmark layers. No canonical trained
+model is published. The project does **not** yet provide CLI business commands or HTTP serving.
 
 ## Architecture
 
@@ -27,10 +27,11 @@ document
   -> greedy CTC decode
   -> ordered line and page results
   -> document TXT/JSON assembly
-  -> evaluation, CLI, and reference HTTP API (planned)
+  -> exact evaluation and frozen synthetic benchmarks
+  -> CLI and reference HTTP API (planned)
 ```
 
-The recognizer, training, inference, and assembly paths are implemented. Evaluation and the
+The recognizer, training, inference, assembly, evaluation, and benchmark paths are implemented.
 CLI/HTTP adapters remain planned. Modules are added in their owning phase with tested behavior
 rather than created as empty scaffolding.
 
@@ -56,7 +57,8 @@ rather than created as empty scaffolding.
 - Half-open bounding-box geometry with intersection, containment, clipping, and IoU.
 - Privacy-aware source, page, preprocessing, line-region, OCR-result, and dataset contracts.
 - Deterministic CTC vocabulary indexing and SHA-256 fingerprints.
-- Structural edit/evaluation result records; metric algorithms are not implemented yet.
+- Standard code-point CER, ASCII-space WER, exact match, deterministic edit alignment, corpus
+  aggregation, ID-complete prediction evaluation, and aligned character error analysis.
 - Strict input-limit, recognizer, and training configuration records.
 - Portable relative dataset-path validation.
 - Safe JSON-compatible projections that exclude image pixel arrays and local filesystem paths.
@@ -87,6 +89,9 @@ rather than created as empty scaffolding.
   between lines and two newline separators between every adjacent page.
 - Deterministic Unicode-preserving TXT and JSON projections plus explicit, atomic, no-overwrite
   output helpers that serialize no images, tensors, local paths, or model internals.
+- New benchmark-only synthetic document/line generation with frozen seeds, group-disjoint
+  train/validation/test identities, train-only vocabulary, one-time test evaluation, and compact
+  SHA-256-verifiable results without committed images or weights.
 
 ## Core API
 
@@ -165,6 +170,45 @@ The command writes only to the explicit destination and rejects unrelated existi
 
 ![Synthetic Urdu layout overlay](data/sample/visual/synthetic-layout-overlay.png)
 
+## Synthetic benchmarks
+
+These are frozen engineering benchmarks over deterministic repository-generated data. They do
+not establish accuracy on historical material, scanned books, handwriting, arbitrary real
+documents, or production workloads. No trained weights are bundled.
+
+**Synthetic document-vision benchmark (`vision-synthetic-v1`)**
+
+| Metric | Frozen result |
+|---|---:|
+| Pages | 13 |
+| Blank-state classifications | 13/13 |
+| Exact line-count pages | 12/13 |
+| Matched regions | 46/70 expected; 66 detected |
+| Region precision | 0.696969696969697 |
+| Region recall | 0.6571428571428571 |
+| Region F1 | 0.676470588235294 |
+| Mean matched IoU | 0.8171916765145802 |
+| Exact kind assignments | 46/46 matched |
+| Exact column assignments | 46/46 matched |
+| Exact reading-order pages | 3/13 |
+| Pages retaining failures | 10/13 |
+
+**Synthetic OCR recognition benchmark (`recognition-synthetic-v1`)**
+
+| Metric | Frozen held-out test result |
+|---|---:|
+| Test lines | 32 |
+| Corpus CER | 1.0 (100.00%) over 1,256 reference code points |
+| Corpus WER | 1.0 (100.00%) over 232 reference words |
+| Exact line match | 0/32 (0.00%) |
+| Character S/D/I | 0 / 1,256 / 0 |
+| Word S/D/I | 0 / 232 / 0 |
+
+The recognition model selected at epoch 3 by minimum validation CTC loss decoded every frozen
+test line as empty after the deliberately bounded three-epoch CPU training protocol. That poor
+result is retained without post-test tuning. See the [benchmark protocol and artifacts](benchmark/README.md)
+and [metric definitions](docs/evaluation.md).
+
 ## Provenance boundary
 
 This repository is a clean, self-contained public reimplementation informed by earlier
@@ -204,10 +248,9 @@ CUDA device; an unavailable configured CUDA device fails without fallback.
 
 ## Roadmap
 
-1. CER/WER evaluation, error analysis, and reproducible benchmark freeze.
-2. CLI and thin reference API adapters over the existing Python pipeline.
-3. Final recruiter documentation and publication audit.
+1. CLI and thin reference API adapters over the existing Python pipeline.
+2. Final recruiter documentation and publication audit.
 
-No OCR accuracy, CER, WER, benchmark, production, or performance claim is made at this stage.
-Evaluation remains Phase 12 and CLI/API adapters remain Phase 13. Repository licensing is
-intentionally unresolved; public visibility does not itself grant reuse rights.
+Only the explicitly labeled synthetic benchmark results above are claimed; no real-world,
+production, or external-comparison claim is made. CLI/API adapters remain Phase 13. Repository
+licensing is intentionally unresolved; public visibility does not itself grant reuse rights.

@@ -1,5 +1,10 @@
 # Checkpoint-backed OCR inference
 
+Recognized lines can be compared with ID-matched references through `evaluate_predictions`, or a
+loaded recognizer can be evaluated against a line manifest through `evaluate_checkpoint`. See
+[evaluation and frozen benchmarks](evaluation.md) for metric, Unicode, aggregation, and freeze
+semantics; this document does not redefine them.
+
 Phase 11 connects the implemented ingestion, vision, CRNN, decoder, and result contracts into a
 reusable Python pipeline. No canonical trained model is bundled. A caller must train or otherwise
 provide a checkpoint that satisfies the exact Phase 10 format. Randomly initialized and smoke-test

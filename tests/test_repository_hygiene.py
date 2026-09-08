@@ -105,22 +105,26 @@ def test_candidate_tree_has_no_historical_dataset_or_vocabulary_artifacts() -> N
             path.stem.casefold() in HISTORICAL_VOCABULARY_STEMS
             and path.suffix.casefold() in {".json", ".txt"}
         )
-        is_canonical_fixture = path.is_relative_to(REPOSITORY_ROOT / "data" / "sample")
+        is_canonical_fixture = path.is_relative_to(
+            REPOSITORY_ROOT / "data" / "sample"
+        ) or path.is_relative_to(REPOSITORY_ROOT / "benchmark" / "manifests")
         if (is_dataset_artifact or is_vocabulary_artifact) and not is_canonical_fixture:
             findings.append(relative.as_posix())
 
     assert findings == []
 
 
-def test_repository_has_no_license_or_post_phase11_modules() -> None:
+def test_repository_has_no_license_or_post_phase13_modules() -> None:
     assert not any(
         (REPOSITORY_ROOT / name).exists() for name in ("LICENSE", "LICENSE.md", "COPYING")
     )
     package = REPOSITORY_ROOT / "src" / "urdu_document_ocr"
-    assert not (package / "evaluation").exists()
     assert (package / "recognition" / "inference.py").is_file()
     assert (package / "document" / "assembly.py").is_file()
     assert (package / "pipeline.py").is_file()
+    assert (package / "evaluation" / "metrics.py").is_file()
+    assert (package / "evaluation" / "errors.py").is_file()
+    assert (package / "evaluation" / "benchmark.py").is_file()
     assert not any(
         (package / name).exists() for name in ("segmentation.py", "layout.py", "cli.py", "api.py")
     )

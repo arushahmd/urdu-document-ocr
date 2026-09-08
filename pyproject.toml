@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "urdu-document-ocr"
 version = "0.1.0"
-description = "Reproducible Urdu document OCR with vision, CRNN training, safe checkpoints, and structured inference."
+description = "Reproducible Urdu document OCR with vision, CRNN training, inference, and evaluation."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

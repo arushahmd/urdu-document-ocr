@@ -1,0 +1,1 @@
+{"alignment_tie_order":["match","substitution","deletion","insertion"],"cer_unit":"unicode_code_point","exact_match":"exact_code_point_equality","metric_policy_id":"ocr-edit-v1","normalization_during_evaluation":"none","schema_version":1,"vision_iou_threshold":0.75,"wer_tokenization":"nonempty_ascii_space_separated_substrings","worst_sample_limit":10,"zero_reference_rate":null}

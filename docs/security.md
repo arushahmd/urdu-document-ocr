@@ -2,6 +2,15 @@
 
 This document records engineering controls, not a security certification.
 
+## Synthetic benchmark artifacts
+
+Phase 12 benchmark text is project-authored and public-safe, and all benchmark images are
+deterministically synthetic. Result artifacts contain only that safe text, logical identities,
+aggregate/per-record metrics, and a deliberately limited environment record without username,
+hostname, or absolute path. Generated images and training checkpoints remain in an explicit
+temporary work directory and are deleted after serialization. No checkpoint or bulk benchmark
+image set is committed.
+
 ## Repository controls
 
 - Do not commit credentials, environment files, private URLs, internal identifiers, machine

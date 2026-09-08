@@ -589,6 +589,30 @@ class EvaluationResult:
         if self.schema_version != 1:
             raise ValueError("schema_version must be 1")
 
+    @property
+    def character_error_rate(self) -> float | None:
+        """Return corpus CER, or ``None`` when its reference denominator is zero."""
+
+        if self.character_edits.reference_length == 0:
+            return None
+        return self.character_edits.total_errors / self.character_edits.reference_length
+
+    @property
+    def word_error_rate(self) -> float | None:
+        """Return corpus WER, or ``None`` when its reference denominator is zero."""
+
+        if self.word_edits.reference_length == 0:
+            return None
+        return self.word_edits.total_errors / self.word_edits.reference_length
+
+    @property
+    def exact_match_rate(self) -> float | None:
+        """Return the exact-string match fraction, or ``None`` for an empty corpus."""
+
+        if self.sample_count == 0:
+            return None
+        return self.exact_matches / self.sample_count
+
     def to_public_dict(self) -> dict[str, object]:
         return {
             "schema_version": self.schema_version,

@@ -41,6 +41,7 @@ jobs:
           --ignore=tests/test_phase10_integration.py
           --ignore=tests/test_inference.py
           --ignore=tests/test_phase11_integration.py
+          --ignore=tests/test_phase12_integration.py
 
   ml-cpu:
     runs-on: ubuntu-latest

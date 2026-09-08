@@ -2,6 +2,13 @@
 data/sample/** text eol=lf
 data/sample/**/*.png binary
 
+# Phase 12 freezes raw SHA-256 identities for compact benchmark text and its evaluator sources.
+benchmark/** text eol=lf
+scripts/run_benchmark.py text eol=lf
+src/urdu_document_ocr/evaluation/** text eol=lf
+src/urdu_document_ocr/errors.py text eol=lf
+src/urdu_document_ocr/types.py text eol=lf
+
 # Preserve the exact reviewed upstream font and license bytes.
 src/urdu_document_ocr/assets/fonts/noto-nastaliq-urdu/*.ttf binary
 src/urdu_document_ocr/assets/fonts/noto-nastaliq-urdu/FONT_LICENSE.txt -text -whitespace

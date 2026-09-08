@@ -68,6 +68,13 @@ and engineering decisions; it does not offer legal conclusions.
 | Document OCR orchestration | Implemented in Phase 11 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written sequential page loop over bounded ingestion and preprocessing with stable blank-page retention | No |
 | Deterministic result assembly and TXT/JSON projections | Implemented in Phase 11 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written newline policy, privacy-safe typed projection, UTF-8 serialization, and explicit atomic output helpers | No |
 | Phase 11 tests and examples | Implemented in Phase 11 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written programmatic fakes, current Phase 8 fixtures, temporary safetensors checkpoints, and public-API-only examples; no text-quality assertion | No |
+| Edit distance and deterministic alignment | Implemented in Phase 12 | `CURRENT_ORIGINAL_IMPLEMENTATION` / `GENERAL_ALGORITHM` | Transparent current-original implementation of unit-cost Levenshtein distance with a frozen backtrace tie policy; hand-calculated tests | No |
+| CER, WER, exact match, and corpus aggregation | Implemented in Phase 12 | `CURRENT_ORIGINAL_IMPLEMENTATION` / `GENERAL_ALGORITHM` | Standard edit-rate definitions independently implemented with exact Unicode input and explicit zero-denominator behavior | No |
+| OCR error analysis | Implemented in Phase 12 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written deterministic aggregation from actual selected alignments, including safe code-point records | No |
+| Synthetic benchmark harness | Implemented in Phase 12 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written regeneration, checkpoint evaluation, one-to-one IoU scoring, result serialization, and compact verification around existing public package APIs | No |
+| Benchmark freeze and integrity logic | Implemented in Phase 12 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written canonical JSON, SHA-256 source/artifact records, frozen-identity checks, and result recalculation | No |
+| Levenshtein distance, CER, WER, and IoU | Used in Phase 12 | `GENERAL_ALGORITHM` | Standard mathematical definitions; no third-party metric implementation incorporated | No |
+| Phase 12 benchmark data and tests | Implemented in Phase 12 | `CURRENT_ORIGINAL_IMPLEMENTATION` / `CURRENT_GENERATED_ARTIFACT` | Newly authored neutral Urdu composition, benchmark-only seeds, programmatic generation, and hand-verifiable cases; no historical assets or metrics | No |
 
 Planned libraries and their licensing/package implications are recorded in
 `dependency-review.md`. Listing a dependency does not incorporate its source into this repository
@@ -79,5 +86,8 @@ written without consulting or copying historical trainers, notebooks, loaders, o
 Phase 11 recognizer loading, line batching, page/document orchestration, assembly, serialization,
 tests, and examples were implemented from the frozen current-project contracts without inspecting
 or copying historical prediction, document OCR, output, model-loading, web-handler, notebook, or
-path code. No historical text, font, image, crop, annotation, vocabulary, generated sample,
+path code. Phase 12 metric, alignment, error-analysis, benchmark, freeze, integrity, and test source
+was independently written from the frozen current-project specification. The existing library
+stack is reused and no edit-distance, metrics, matching, dataframe, or scientific-optimization
+dependency was added. No historical text, font, image, crop, annotation, vocabulary, generated sample,
 checkpoint, or model artifact is present.

@@ -150,3 +150,15 @@ class AssemblyError(UrduOCRError):
     """OCR results cannot be assembled or written without losing structure."""
 
     code = "assembly_error"
+
+
+class EvaluationError(UrduOCRError):
+    """References or predictions cannot be evaluated without ambiguity."""
+
+    code = "evaluation_error"
+
+
+class BenchmarkError(UrduOCRError):
+    """A synthetic benchmark violates its frozen configuration or integrity record."""
+
+    code = "benchmark_error"
