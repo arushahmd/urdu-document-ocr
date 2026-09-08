@@ -76,6 +76,13 @@ resolution here included filelock, fsspec, Jinja2/MarkupSafe, networkx, SymPy/mp
 typing-extensions, and setuptools. Runtime code performs no package, model, or weight download.
 No `safetensors` dependency is installed before Phase 10 needs checkpoint persistence.
 
+Phase 10 adds `safetensors>=0.8,<0.9` to the same optional `ml` extra as PyTorch. The reference
+CPython 3.11 environment resolved safetensors 0.8.0, whose package metadata requires Python 3.10
+or newer and identifies Apache-2.0. Training uses only the documented PyTorch `save_file` and
+`load_file` tensor APIs. Core installs still resolve neither PyTorch nor safetensors. No pickle,
+optimizer-state serialization, training framework, experiment tracker, or runtime download was
+added.
+
 ## CI action review
 
 CI uses `actions/checkout@v6` and `actions/setup-python@v7`. The reviewed stable releases

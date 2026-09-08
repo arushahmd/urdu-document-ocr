@@ -11,6 +11,7 @@ from urdu_document_ocr.config import (
     SegmentationConfig,
     SyntheticDataConfig,
     ThresholdMethod,
+    TrainingConfig,
 )
 from urdu_document_ocr.data import (
     DatasetPartition,
@@ -56,6 +57,7 @@ from urdu_document_ocr.data import (
 )
 from urdu_document_ocr.document import load_document
 from urdu_document_ocr.errors import (
+    CheckpointError,
     CTCAlignmentError,
     DatasetSplitError,
     DatasetValidationError,
@@ -71,6 +73,8 @@ from urdu_document_ocr.errors import (
     ReviewOverlayError,
     SegmentationError,
     SyntheticDataError,
+    TrainingDataError,
+    TrainingError,
     UnsupportedDocumentFormatError,
     UrduOCRError,
     VocabularyError,
@@ -104,29 +108,56 @@ _RECOGNITION_EXPORTS = frozenset(
     }
 )
 
+_TRAINING_EXPORTS = frozenset(
+    {
+        "CHECKPOINT_SCHEMA_VERSION",
+        "CheckpointMetadata",
+        "OCRBatch",
+        "OCRLineDataset",
+        "OCRLineItem",
+        "OCRTrainer",
+        "TrainingEpochRecord",
+        "TrainingPreflightReport",
+        "TrainingResult",
+        "collate_ocr_batch",
+        "load_checkpoint",
+        "save_checkpoint",
+        "set_training_seed",
+        "train_model",
+        "validate_training_data",
+    }
+)
+
 
 def __getattr__(name: str) -> object:
-    """Load the optional recognition surface only when an ML object is requested."""
+    """Load optional recognition or training objects only when requested."""
 
-    if name not in _RECOGNITION_EXPORTS:
+    if name not in _RECOGNITION_EXPORTS | _TRAINING_EXPORTS:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     try:
-        from urdu_document_ocr import recognition
+        if name in _RECOGNITION_EXPORTS:
+            from urdu_document_ocr import recognition as optional_module
+        else:
+            from urdu_document_ocr import training as optional_module
     except ModuleNotFoundError as error:
-        if error.name == "torch":
+        if error.name in {"safetensors", "torch"}:
             raise ImportError(
-                "PyTorch recognition support is optional; install urdu-document-ocr[ml]"
+                "PyTorch recognition and training support is optional; "
+                "install urdu-document-ocr[ml]"
             ) from error
         raise
-    value = getattr(recognition, name)
+    value = getattr(optional_module, name)
     globals()[name] = value
     return value
 
 
 __all__ = [
+    "CHECKPOINT_SCHEMA_VERSION",
     "CRNNRecognizer",
     "CTCAlignmentError",
     "CTCAlignmentReport",
+    "CheckpointError",
+    "CheckpointMetadata",
     "DatasetPartition",
     "DatasetSample",
     "DatasetSplitConfig",
@@ -144,7 +175,11 @@ __all__ = [
     "ManifestError",
     "ModelInputError",
     "MorphologyOperation",
+    "OCRBatch",
+    "OCRLineDataset",
+    "OCRLineItem",
     "OCRRecognizer",
+    "OCRTrainer",
     "PageImage",
     "PageLayoutFamily",
     "PdfPasswordError",
@@ -172,6 +207,12 @@ __all__ = [
     "SyntheticPageRecord",
     "TextSource",
     "ThresholdMethod",
+    "TrainingConfig",
+    "TrainingDataError",
+    "TrainingEpochRecord",
+    "TrainingError",
+    "TrainingPreflightReport",
+    "TrainingResult",
     "UnsupportedDocumentFormatError",
     "UrduOCRError",
     "ValidationIssue",
@@ -183,6 +224,7 @@ __all__ = [
     "assert_shaping_available",
     "build_vocabulary",
     "bundled_font_path",
+    "collate_ocr_batch",
     "compute_ctc_loss",
     "dataset_fingerprint",
     "extract_line_crop",
@@ -193,6 +235,7 @@ __all__ = [
     "generate_page_fixture",
     "greedy_ctc_decode",
     "input_width_to_timesteps",
+    "load_checkpoint",
     "load_document",
     "load_font_provenance",
     "load_vocabulary",
@@ -203,11 +246,15 @@ __all__ = [
     "read_manifest",
     "read_review_overlay",
     "review_overlay_fingerprint",
+    "save_checkpoint",
     "save_vocabulary",
     "segment_page",
+    "set_training_seed",
     "split_dataset",
+    "train_model",
     "validate_ctc_alignment",
     "validate_dataset",
+    "validate_training_data",
     "write_manifest",
     "write_review_overlay",
     "write_split_manifests",

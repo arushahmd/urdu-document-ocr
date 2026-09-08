@@ -27,7 +27,7 @@ LSTM_HIDDEN_SIZE = 256
 LSTM_LAYERS = 2
 LSTM_DROPOUT = 0.2
 
-_ARCHITECTURE_ID = "crnn-gn-silu-bilstm-ctc-v1"
+MODEL_ARCHITECTURE_ID = "crnn-gn-silu-bilstm-ctc-v1"
 _CHANNELS = (64, 128, 256, 384)
 _GROUPS = (8, 16, 32, 32)
 _POOL_SIZES = ((2, 2), (2, 2), (2, 1), (2, 1))
@@ -148,7 +148,7 @@ class CRNNRecognizer(nn.Module):
     @property
     def fingerprint(self) -> str:
         payload = {
-            "architecture": _ARCHITECTURE_ID,
+            "architecture": MODEL_ARCHITECTURE_ID,
             "blank_index": self.config.blank_index,
             "config_fingerprint": self.config.fingerprint,
             "vocabulary_fingerprint": self.vocabulary.fingerprint,

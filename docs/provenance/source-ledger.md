@@ -55,11 +55,20 @@ and engineering decisions; it does not offer legal conclusions.
 | GroupNorm, SiLU, packed BiLSTM, and CTCLoss primitives | Used in Phase 9 | `EXTERNAL_LIBRARY` | PyTorch 2.14 public APIs; project composition, validation, and contracts are current-original | No |
 | Greedy CTC decoder and alignment feasibility checks | Implemented in Phase 9 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written collapse-before-blank-removal decoder and adjacent-repeat minimum-timestep validation | No |
 | Phase 9 tests | Implemented in Phase 9 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Programmatic tensors plus the provenance-cleared Phase 8 synthetic line/vocabulary; no expected recognition text or accuracy claim | No |
+| OCR line Dataset and dynamic collator | Implemented in Phase 10 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written wrapper around current manifest, image-containment, vocabulary, and recognizer-input contracts; variable-width white padding follows the frozen design | No |
+| Training preflight and deterministic DataLoaders | Implemented in Phase 10 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written split-leakage, vocabulary, image-conflict, width, and exact CTC-feasibility checks with explicit seeded generators/workers | No |
+| AdamW trainer, validation, and early stopping | Implemented in Phase 10 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written transparent epoch loops, finite-value guards, sample-weighted loss aggregation, gradient clipping, and validation-loss selection | No |
+| Safe checkpoint metadata and atomic save/load | Implemented in Phase 10 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written canonical JSON identity, SHA-256 verification, temporary-directory replacement, and strict pre-mutation tensor checks | No |
+| AdamW and PyTorch DataLoader | Used in Phase 10 | `EXTERNAL_LIBRARY` | PyTorch 2.14 public optimizer, DataLoader, generator, and gradient-clipping APIs; orchestration and policy are current-original | No |
+| safetensors | Used in Phase 10 | `EXTERNAL_LIBRARY` | safetensors 0.8 public PyTorch save/load APIs for tensor-only model weights; Apache-2.0 | No |
+| Phase 10 tests | Implemented in Phase 10 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Programmatic tensors/images and the provenance-cleared Phase 8 fixtures; all checkpoints are temporary and no quality assertion is made | No |
 
 Planned libraries and their licensing/package implications are recorded in
 `dependency-review.md`. Listing a dependency does not incorporate its source into this repository
 or select a license for repository-owned code. Phases 5 through 9 were implemented without
 consulting or copying historical preprocessing, conversion, segmentation, layout, data-processing,
 split, vocabulary, review, synthetic generation, recognizer, CTC, decoder, notebook, or test
-source. No historical text, font, image, crop, annotation, vocabulary, or generated sample is
-present in the Phase 8 fixtures, and no historical model artifact is present in Phase 9.
+source. Phase 10 training, optimizer, batching, early-stopping, and checkpoint source was also
+written without consulting or copying historical trainers, notebooks, loaders, or utilities. No
+historical text, font, image, crop, annotation, vocabulary, generated sample, checkpoint, or model
+artifact is present.

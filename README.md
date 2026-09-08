@@ -6,13 +6,13 @@ recognition, training, and evaluation contracts.
 ## Status
 
 This is an active, clean public reimplementation built in incremental verified phases. Through
-Phase 9 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
+Phase 10 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
 classical preprocessing, classical-CV line segmentation, conservative one/two-column layout,
 Urdu RTL reading order, reproducible OCR dataset engineering, and provenance-cleared synthetic
-Urdu fixtures, plus an actual trainable PyTorch CNN-BiLSTM-CTC recognizer with variable-width
-inputs, CTC loss, and greedy decoding. The model is currently untrained. The project does **not**
-yet provide a trainer, checkpoints, trained public weights, document-level recognition, OCR
-quality results, CER/WER, CLI business commands, or HTTP serving.
+Urdu fixtures, a trainable PyTorch CNN-BiLSTM-CTC recognizer, a validated AdamW training path,
+validation-loss selection, and safetensors checkpoints. No canonical trained model is published.
+The project does **not** yet provide document-level recognition, OCR quality results, CER/WER,
+CLI business commands, or HTTP serving.
 
 ## Architecture
 
@@ -28,8 +28,8 @@ document
   -> evaluation, Python API, CLI, and reference HTTP API
 ```
 
-The recognizer core now exists; document-level inference, assembly, training orchestration,
-evaluation, and interfaces remain planned. Modules are added in their owning phase with tested
+The recognizer and training core now exist; document-level inference, assembly, evaluation, and
+interfaces remain planned. Modules are added in their owning phase with tested
 behavior rather than created as empty scaffolding.
 
 ## Current implemented scope
@@ -71,6 +71,10 @@ behavior rather than created as empty scaffolding.
   squeezing, cropping, or truncation of over-width lines.
 - Mean CTC loss with explicit repeated-label feasibility checks and vocabulary-bound greedy CTC
   decoding that emits no fabricated confidence.
+- A root-contained `OCRLineDataset`, dynamic white-padded collation, deterministic DataLoaders,
+  fixed-rate AdamW optimization, mutation-free validation, and exact early stopping.
+- Best-validation-loss checkpoints with safetensors weights, strict JSON metadata/vocabulary,
+  SHA-256 integrity checks, atomic replacement, and no serialized optimizer state.
 
 ## Core API
 
@@ -95,6 +99,10 @@ deskew. Segmentation consumes only the normalized foreground mask and returns or
 not recognized text. See [architecture details](docs/architecture.md) for exact limits and
 decision rules, [recognizer details](docs/recognizer.md) for the model contract, and
 [OCR data format](docs/data-format.md) for labeled-data contracts.
+
+The optional ML extra also provides the Python-only training API documented in
+[training and checkpoints](docs/training.md). It requires explicit manifests, vocabulary, dataset
+root, and output directory; no user-facing training CLI exists yet.
 
 Dataset operations are ordinary library APIs:
 
@@ -153,20 +161,20 @@ python -m pytest
 ```
 
 Core document/data functionality intentionally does not require PyTorch. Install the reviewed ML
-extra to use and test recognition:
+extra to use and test recognition and training:
 
 ```console
 python -m pip install -e ".[ml,dev]"
 ```
 
 CPU-only CI first resolves the official PyTorch CPU wheel channel and then installs the extra.
-Runtime code never selects a device or downloads weights; callers place the model and tensors on
-their chosen device.
+Runtime code never downloads weights. Training defaults to CPU and accepts an explicit CUDA device;
+an unavailable configured CUDA device fails without fallback.
 
 ## Roadmap
 
-1. Training orchestration and safe tensor-only checkpoints.
-2. End-to-end inference, evaluation, CLI, and a thin reference API.
+1. End-to-end inference and document assembly.
+2. Evaluation, CLI, and a thin reference API.
 3. Reproducible synthetic benchmarks and final publication audit.
 
 No production or accuracy claim is made at this stage. Repository licensing is intentionally

@@ -72,10 +72,26 @@ and provenance; that license does not license repository-owned source code.
 
 Phase 9 recognition accepts only caller-provided in-memory tensors and grayscale arrays; it does
 not accept paths or remote URLs at the model boundary. The package includes no pretrained weights
-and performs no model, font, or data download. Checkpoint persistence and deserialization are not
-implemented, so the recognition path does not invoke `torch.load`, pickle, or arbitrary-code
-loading. No model binaries are tracked. Model, CTC, and decoder validation errors report only
+and performs no model, font, or data download. The recognition module itself does not deserialize
+artifacts or invoke `torch.load`, pickle, or arbitrary-code loading. No model binaries are tracked.
+Model, CTC, and decoder validation errors report only
 shape/class/count metadata, and recognition code does not log document pixels or text.
+
+Phase 10 training resolves every sample through the shared Phase 7 dataset-root containment and
+PNG/JPEG decoder, then reuses the Phase 9 image normalization and width formula. Preflight errors
+identify safe sample/document IDs and relative image paths, never the absolute root. Training does
+not log document text. Its caller-selected output directory must be new or empty; unrelated
+contents and symbolic-link checkpoint directories fail closed.
+
+Model weights are serialized only as `.safetensors`; strict canonical JSON stores configuration,
+vocabulary, and identity metadata. Checkpoints contain SHA-256 hashes for weights and vocabulary,
+a deterministic metadata fingerprint, and exact model/configuration/vocabulary bindings. Saving
+uses a fully assembled sibling temporary directory and atomic rename, requires explicit overwrite,
+and preserves an existing valid checkpoint if replacement fails. Loading verifies JSON schema,
+hashes, tensor names/shapes/dtypes, finite values, class count, and blank index before strict state
+mutation. Current source imports neither pickle nor joblib and never calls `torch.load`; optimizer
+state is not persisted. Safetensors prevents Python object deserialization but does not make an
+arbitrary model, tensor allocation, or surrounding filesystem inherently trustworthy.
 
 ## Reporting concerns
 

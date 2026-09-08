@@ -13,6 +13,8 @@ from hashlib import sha256
 from pathlib import Path
 from statistics import median
 
+import numpy as np
+from numpy.typing import NDArray
 from PIL import Image, UnidentifiedImageError
 
 from urdu_document_ocr.data.manifest import dataset_fingerprint
@@ -221,6 +223,53 @@ def _inspect_image(path: Path) -> tuple[int, int, str]:
                 raise _ImagePolicyError("invalid_dimensions")
             image.verify()
     return width, height, _hash_file(path)
+
+
+def load_dataset_line_image(
+    sample: DatasetSample,
+    *,
+    dataset_root: str | os.PathLike[str],
+) -> NDArray[np.uint8]:
+    """Safely resolve and decode one canonical PNG/JPEG sample as grayscale uint8."""
+
+    if not isinstance(sample, DatasetSample):
+        raise DatasetValidationError("sample must be a DatasetSample")
+    root = _safe_root(dataset_root)
+    image_path = _resolved_sample_path(root, sample)
+    if image_path is None:
+        raise DatasetValidationError(
+            "image path resolves outside the dataset root",
+            context={"sample_id": sample.sample_id, "image_path": sample.image_path},
+        )
+    if not image_path.exists() or not image_path.is_file():
+        raise DatasetValidationError(
+            "line image is missing or is not a regular file",
+            context={"sample_id": sample.sample_id, "image_path": sample.image_path},
+        )
+    try:
+        _inspect_image(image_path)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(image_path) as image:
+                grayscale = np.asarray(image.convert("L"), dtype=np.uint8).copy()
+    except (
+        OSError,
+        SyntaxError,
+        UnidentifiedImageError,
+        Image.DecompressionBombError,
+        Image.DecompressionBombWarning,
+        _ImagePolicyError,
+    ) as error:
+        raise DatasetValidationError(
+            "line image could not be decoded safely as PNG or JPEG",
+            context={"sample_id": sample.sample_id, "image_path": sample.image_path},
+        ) from error
+    if grayscale.ndim != 2 or grayscale.size == 0:
+        raise DatasetValidationError(
+            "decoded line image has invalid dimensions",
+            context={"sample_id": sample.sample_id, "image_path": sample.image_path},
+        )
+    return grayscale
 
 
 def _issue(

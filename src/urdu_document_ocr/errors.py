@@ -126,3 +126,21 @@ class DecodingError(RecognitionError):
     """Recognizer logits cannot be decoded with the supplied vocabulary."""
 
     code = "decoding_error"
+
+
+class TrainingError(UrduOCRError):
+    """A training operation cannot continue safely."""
+
+    code = "training_error"
+
+
+class TrainingDataError(TrainingError):
+    """Training data violates a required image, split, or CTC invariant."""
+
+    code = "training_data_error"
+
+
+class CheckpointError(TrainingError):
+    """A checkpoint cannot be saved or loaded without violating integrity rules."""
+
+    code = "checkpoint_error"

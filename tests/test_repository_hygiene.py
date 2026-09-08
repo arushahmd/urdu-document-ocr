@@ -117,7 +117,7 @@ def test_repository_has_no_license_or_premature_modules() -> None:
         (REPOSITORY_ROOT / name).exists() for name in ("LICENSE", "LICENSE.md", "COPYING")
     )
     package = REPOSITORY_ROOT / "src" / "urdu_document_ocr"
-    assert not any((package / name).exists() for name in ("training", "evaluation"))
+    assert not (package / "evaluation").exists()
     assert not (package / "recognition" / "inference.py").exists()
     assert not any((package / name).exists() for name in ("segmentation.py", "layout.py", "api.py"))
 
@@ -161,10 +161,21 @@ def test_source_does_not_import_unsafe_serialization_or_unscoped_ml_frameworks()
             for name in names:
                 if name in forbidden_imports:
                     findings.append(f"{name} imported by {path.relative_to(REPOSITORY_ROOT)}")
-                if name == "torch" and "recognition" not in path.relative_to(source_root).parts:
+                if name == "torch" and not {
+                    "recognition",
+                    "training",
+                }.intersection(path.relative_to(source_root).parts):
                     findings.append(
                         f"unscoped torch imported by {path.relative_to(REPOSITORY_ROOT)}"
                     )
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id == "torch"
+                and node.func.attr == "load"
+            ):
+                findings.append(f"torch.load used by {path.relative_to(REPOSITORY_ROOT)}")
 
     assert findings == []
 

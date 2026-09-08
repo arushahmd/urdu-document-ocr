@@ -124,7 +124,10 @@ def test_training_defaults_are_small_validated_contracts() -> None:
 
     assert config.seed == 1337
     assert config.batch_size == 16
-    assert config.checkpoint_directory == "checkpoints"
+    assert config.checkpoint_directory == "best"
+    assert config.device == "cpu"
+    assert config.learning_rate == 0.0005
+    assert config.min_delta == 0.0
     assert config.max_image_width == 2048
 
 
@@ -138,12 +141,15 @@ def test_training_defaults_are_small_validated_contracts() -> None:
         {"learning_rate": float("nan")},
         {"weight_decay": -0.1},
         {"gradient_clip": 0.0},
+        {"device": "auto"},
         {"device": "gpu"},
         {"checkpoint_directory": "../outside"},
         {"checkpoint_directory": r"C:\private\checkpoints"},
         {"num_workers": -1},
         {"early_stopping_patience": 0},
+        {"min_delta": -0.1},
         {"max_image_width": 0},
+        {"max_image_width": 2049},
     ],
 )
 def test_training_config_rejects_invalid_values(overrides: dict[str, object]) -> None:

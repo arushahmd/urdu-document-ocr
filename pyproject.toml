@@ -19,6 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 ml = [
+    "safetensors>=0.8,<0.9",
     "torch>=2.14,<2.15",
 ]
 dev = [

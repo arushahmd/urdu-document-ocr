@@ -439,25 +439,26 @@ class RecognizerConfig(StrictConfig):
             raise ConfigurationError("CTC blank_index must be 0")
 
 
-_DEVICE_PATTERN = re.compile(r"(?:auto|cpu|mps|cuda(?::[0-9]+)?)")
+_DEVICE_PATTERN = re.compile(r"(?:cpu|cuda(?::[0-9]+)?)")
 
 
 @dataclass(frozen=True, slots=True)
 class TrainingConfig(StrictConfig):
-    """Small validated training configuration; training itself arrives in Phase 10."""
+    """Small, deterministic-by-request configuration for Phase 10 training."""
 
     _config_name: ClassVar[str] = "training"
 
     seed: int = 1337
     batch_size: int = 16
     epochs: int = 20
-    learning_rate: float = 0.001
+    learning_rate: float = 0.0005
     weight_decay: float = 0.0001
     gradient_clip: float = 5.0
-    device: str = "auto"
-    checkpoint_directory: str = "checkpoints"
+    device: str = "cpu"
+    checkpoint_directory: str = "best"
     num_workers: int = 0
     early_stopping_patience: int = 5
+    min_delta: float = 0.0
     max_image_width: int = 2048
 
     def __post_init__(self) -> None:
@@ -468,7 +469,7 @@ class TrainingConfig(StrictConfig):
         _require_number("weight_decay", self.weight_decay, minimum=0.0, inclusive=True)
         _require_number("gradient_clip", self.gradient_clip, minimum=0.0, inclusive=False)
         if not isinstance(self.device, str) or _DEVICE_PATTERN.fullmatch(self.device) is None:
-            raise ConfigurationError("device must be auto, cpu, mps, cuda, or cuda:<index>")
+            raise ConfigurationError("device must be cpu, cuda, or cuda:<index>")
         try:
             safe_checkpoint_path = normalize_relative_dataset_path(self.checkpoint_directory)
         except (TypeError, ValueError) as error:
@@ -476,4 +477,7 @@ class TrainingConfig(StrictConfig):
         object.__setattr__(self, "checkpoint_directory", safe_checkpoint_path)
         _require_int("num_workers", self.num_workers, minimum=0)
         _require_int("early_stopping_patience", self.early_stopping_patience, minimum=1)
+        _require_number("min_delta", self.min_delta, minimum=0.0, inclusive=True)
         _require_int("max_image_width", self.max_image_width, minimum=1)
+        if self.max_image_width > 2048:
+            raise ConfigurationError("max_image_width must be at most 2048")

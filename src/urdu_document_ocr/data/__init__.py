@@ -51,6 +51,7 @@ from urdu_document_ocr.data.validation import (
     NumericSummary,
     ValidationIssue,
     ValidationSeverity,
+    load_dataset_line_image,
     normalize_transcription,
     validate_dataset,
 )
@@ -98,6 +99,7 @@ __all__ = [
     "generate_line_dataset",
     "generate_line_sample",
     "generate_page_fixture",
+    "load_dataset_line_image",
     "load_font_provenance",
     "load_vocabulary",
     "normalize_transcription",

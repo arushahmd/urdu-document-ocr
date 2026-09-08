@@ -17,6 +17,7 @@ class TorchBlocker:
 sys.meta_path.insert(0, TorchBlocker())
 import urdu_document_ocr
 assert "torch" not in sys.modules
+assert "safetensors" not in sys.modules
 assert urdu_document_ocr.RecognizerConfig().normalized_height == 64
 try:
     urdu_document_ocr.CRNNRecognizer
@@ -24,6 +25,12 @@ except ImportError as error:
     assert "urdu-document-ocr[ml]" in str(error)
 else:
     raise AssertionError("ML API access unexpectedly succeeded without torch")
+try:
+    urdu_document_ocr.OCRLineDataset
+except ImportError as error:
+    assert "urdu-document-ocr[ml]" in str(error)
+else:
+    raise AssertionError("training API access unexpectedly succeeded without ML dependencies")
 """
     result = subprocess.run(
         [sys.executable, "-c", script],

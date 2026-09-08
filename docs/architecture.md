@@ -18,7 +18,7 @@ The intended V1 is a single-process Python package. Vision, recognition, evaluat
 interface layers remain separable so each can be tested without inventing service
 infrastructure.
 
-## Implemented through Phase 9
+## Implemented through Phase 10
 
 - `urdu_document_ocr.types`: immutable structural records, validated image-array contracts,
   half-open geometry, vocabulary indexing/fingerprinting, and privacy-safe public projections.
@@ -35,6 +35,8 @@ infrastructure.
   overlays.
 - `urdu_document_ocr.recognition`: optional PyTorch CNN-BiLSTM-CTC logits, input normalization,
   explicit alignment validation and loss, and greedy vocabulary decoding.
+- `urdu_document_ocr.training`: validated line datasets, variable-width batching, deterministic
+  DataLoaders, AdamW optimization, validation/early stopping, and strict safetensors checkpoints.
 
 RGB page images are `uint8[height,width,3]`. Preprocessed grayscale pages are
 `uint8[height,width]`; foreground masks are `bool[height,width]`. Page and reading-order indices
@@ -219,9 +221,26 @@ minimum width 4, and configured maximum width 2048 by default. It emits raw logi
 probabilities. Class zero is CTC blank; vocabulary characters occupy `1..N`; no UNK, PAD, BOS, or
 EOS class exists. See `recognizer.md` for the complete contract and limitations.
 
+## Training pipeline
+
+```text
+labeled manifest + vocabulary
+  -> root-contained OCRLineDataset
+  -> seeded dynamic-width DataLoader
+  -> CRNN logits + validated CTC loss
+  -> fixed-rate AdamW optimization
+  -> sample-weighted validation loss
+  -> best/ safetensors + strict JSON identity
+```
+
+All image preparation and width geometry are shared with recognition. Preflight rejects unseen
+characters, sample/document overlap, conflicting prepared images, unsafe or invalid images, model
+width violations, and impossible CTC alignments before output creation. Only the lowest qualifying
+validation loss is persisted. Optimizer state is deliberately absent, so exact resume is not
+claimed.
+
 ## Planned, not implemented
 
-- Phase 10: training orchestration and tensor-only checkpoints.
 - Phases 11–13: inference, assembly, metrics, benchmarks, CLI, and reference HTTP adapter.
 
 Future directories and imports do not exist until their phase supplies meaningful tested code.
