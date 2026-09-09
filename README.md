@@ -6,7 +6,7 @@ checkpoints, checkpoint-backed inference, exact evaluation, and frozen synthetic
 ## Status
 
 This is an active, clean public reimplementation built in incremental verified phases. Through
-Phase 12 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
+Phase 12B it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
 classical preprocessing, classical-CV line segmentation, conservative one/two-column layout,
 Urdu RTL reading order, reproducible OCR dataset engineering, and provenance-cleared synthetic
 Urdu fixtures, a trainable PyTorch CNN-BiLSTM-CTC recognizer, a validated AdamW training path,
@@ -92,6 +92,9 @@ rather than created as empty scaffolding.
 - New benchmark-only synthetic document/line generation with frozen seeds, group-disjoint
   train/validation/test identities, train-only vocabulary, one-time test evaluation, and compact
   SHA-256-verifiable results without committed images or weights.
+- A separately versioned `recognition-synthetic-v2` benchmark selected from external
+  development-only evidence, frozen before one held-out test run, and reproducible without a
+  committed checkpoint.
 
 ## Core API
 
@@ -206,8 +209,29 @@ documents, or production workloads. No trained weights are bundled.
 
 The recognition model selected at epoch 3 by minimum validation CTC loss decoded every frozen
 test line as empty after the deliberately bounded three-epoch CPU training protocol. That poor
-result is retained without post-test tuning. See the [benchmark protocol and artifacts](benchmark/README.md)
-and [metric definitions](docs/evaluation.md).
+result is retained without post-test tuning.
+
+**Current synthetic OCR recognition benchmark (`recognition-synthetic-v2`)**
+
+| Metric | Frozen held-out test result |
+|---|---:|
+| Test lines | 16 |
+| Corpus CER | 0.5686274509803921 (56.86%) over 306 reference code points |
+| Corpus WER | 0.7777777777777778 (77.78%) over 54 reference words |
+| Exact line match | 0/16 (0.00%) |
+| Character S/D/I | 16 / 158 / 0 |
+| Word S/D/I | 20 / 22 / 0 |
+| Empty predictions | 0/16 (0.00%) |
+
+V2 retains the same recognizer, CTC/decoder semantics, validation-loss selection, and
+`ocr-edit-v1` metrics. A development-only study established tiny-set exact matches and selected
+the 30-epoch, 240-update protocol before V2 identities were generated. V2 was then independently
+frozen and evaluated once; its checkpoint was deleted. The known aggregate V1 failure motivated
+the study, but no V1 sample-specific test prediction and no V2 test result was used for tuning.
+The comparison demonstrates learnability only within these repository-generated synthetic
+domains—it is not a real-document accuracy claim. See the
+[V2 benchmark record](benchmark/recognition-synthetic-v2/README.md), the byte-preserved
+[initial benchmark record](benchmark/README.md), and [metric definitions](docs/evaluation.md).
 
 ## Provenance boundary
 

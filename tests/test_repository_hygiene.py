@@ -108,6 +108,9 @@ def test_candidate_tree_has_no_historical_dataset_or_vocabulary_artifacts() -> N
         is_canonical_fixture = path.is_relative_to(
             REPOSITORY_ROOT / "data" / "sample"
         ) or path.is_relative_to(REPOSITORY_ROOT / "benchmark" / "manifests")
+        is_canonical_fixture = is_canonical_fixture or path.is_relative_to(
+            REPOSITORY_ROOT / "benchmark" / "recognition-synthetic-v2" / "manifests"
+        )
         if (is_dataset_artifact or is_vocabulary_artifact) and not is_canonical_fixture:
             findings.append(relative.as_posix())
 

@@ -1,6 +1,6 @@
 # Current implementation source ledger
 
-Review date: 2026-09-08
+Review date: 2026-09-09
 Implementation rule: `REIMPLEMENT_FROM_CONCEPT`
 
 This ledger describes the provenance of the current public implementation. It records evidence
@@ -75,6 +75,9 @@ and engineering decisions; it does not offer legal conclusions.
 | Benchmark freeze and integrity logic | Implemented in Phase 12 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written canonical JSON, SHA-256 source/artifact records, frozen-identity checks, and result recalculation | No |
 | Levenshtein distance, CER, WER, and IoU | Used in Phase 12 | `GENERAL_ALGORITHM` | Standard mathematical definitions; no third-party metric implementation incorporated | No |
 | Phase 12 benchmark data and tests | Implemented in Phase 12 | `CURRENT_ORIGINAL_IMPLEMENTATION` / `CURRENT_GENERATED_ARTIFACT` | Newly authored neutral Urdu composition, benchmark-only seeds, programmatic generation, and hand-verifiable cases; no historical assets or metrics | No |
+| Phase 12B external learnability study | Executed outside the repository | `CURRENT_ORIGINAL_IMPLEMENTATION` / `CURRENT_GENERATED_ARTIFACT` | Newly authored development-only Urdu compositions, deterministic synthetic images, and instrumentation around current public APIs; only the report SHA-256 and aggregate selection evidence enter V2 provenance | No |
+| Synthetic recognition benchmark V2 harness | Implemented in Phase 12B | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written recognition-only prepare/freeze/preflight/run/verify orchestration reusing the current renderer, trainer, recognizer, evaluator, and error analyzer | No |
+| Synthetic recognition benchmark V2 data/results | Implemented in Phase 12B | `CURRENT_ORIGINAL_IMPLEMENTATION` / `CURRENT_GENERATED_ARTIFACT` | Eight newly authored concise templates, deterministic numeric composition, new seeds, grouped identities, train-only vocabulary, and one post-freeze test run | No |
 
 Planned libraries and their licensing/package implications are recorded in
 `dependency-review.md`. Listing a dependency does not incorporate its source into this repository
@@ -91,3 +94,9 @@ was independently written from the frozen current-project specification. The exi
 stack is reused and no edit-distance, metrics, matching, dataframe, or scientific-optimization
 dependency was added. No historical text, font, image, crop, annotation, vocabulary, generated sample,
 checkpoint, or model artifact is present.
+
+Phase 12B did not inspect or copy historical OCR code, data, text, checkpoints, metrics, or model
+artifacts. Its external development study used only new project-authored/programmatically
+composed text and current public package APIs. The V2 corpus is also newly authored and has zero
+exact-text overlap with the development corpus. Model, trainer, CTC, decoder, and `ocr-edit-v1`
+implementations remain unchanged. No trained checkpoint is committed.

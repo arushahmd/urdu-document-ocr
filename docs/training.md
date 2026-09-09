@@ -11,6 +11,32 @@ Benchmark-generated line images and the best safetensors checkpoint live only in
 temporary work directory. Compact safe result JSON is retained, while the checkpoint and bulk
 images are removed and no canonical model weights are committed.
 
+Phase 12B adds a distinct `recognition-synthetic-v2` harness without changing the shared trainer
+or making the original benchmark command unexpectedly expensive. A development-only study first
+showed that the unchanged CRNN can escape early blank collapse: a validation-loss-selected
+16-line checkpoint reached train CER 0.0625 with 5/16 exact training lines after 288 updates.
+At matched 120-update learning-rate controls, 0.001 outperformed 0.0005 and 0.0002.
+
+The V2 protocol therefore seeds before constructing the model—as this document's reproducibility
+contract already requires—then uses the existing AdamW trainer for at most 30 epochs / 240 steps,
+batch 16, learning rate 0.001, weight decay 0.0001, gradient clipping 5.0, CPU, zero workers,
+patience 8, and `min_delta=0`. Minimum validation CTC loss remains the only checkpoint-selection
+criterion. The selected checkpoint is evaluated on the frozen 16-line test split exactly once,
+then removed with the generated images. No scheduler, curriculum, classifier-bias trick,
+architecture change, trainer change, or metric change was introduced.
+
+Full reproduction is an explicit/manual operation from a checkout in which V2 result artifacts
+do not yet exist:
+
+```console
+python scripts/run_recognition_benchmark_v2.py run --work-directory ../empty-v2-work
+```
+
+The work directory must already exist and be empty. The checked-in result was produced from the
+built wheel in a fresh CPython 3.11.9 environment with CPU PyTorch 2.14.0 and took about 29.5
+minutes for training plus 2.2 seconds for test inference and metrics. Ordinary validation uses
+the script's `verify` mode and never retrains or re-infers.
+
 Phase 10 provides a Python API for training the current CNN-BiLSTM-CTC recognizer from caller
 supplied, canonical line-image manifests. It proves the engineering path; it does not provide a
 trained public model or evidence of OCR quality.

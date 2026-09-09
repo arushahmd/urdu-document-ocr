@@ -1,4 +1,5 @@
 # Canonical fixture hashes include bytes, so text artifacts must stay LF on every platform.
+.gitattributes text eol=lf
 data/sample/** text eol=lf
 data/sample/**/*.png binary
 
@@ -8,6 +9,15 @@ scripts/run_benchmark.py text eol=lf
 src/urdu_document_ocr/evaluation/** text eol=lf
 src/urdu_document_ocr/errors.py text eol=lf
 src/urdu_document_ocr/types.py text eol=lf
+
+# Phase 12B V2 hashes include these public documentation, harness, and integration-test bytes.
+README.md text eol=lf
+docs/evaluation.md text eol=lf
+docs/training.md text eol=lf
+docs/provenance/source-ledger.md text eol=lf
+scripts/run_recognition_benchmark_v2.py text eol=lf
+tests/test_phase12b_integration.py text eol=lf
+tests/test_repository_hygiene.py text eol=lf
 
 # Preserve the exact reviewed upstream font and license bytes.
 src/urdu_document_ocr/assets/fonts/noto-nastaliq-urdu/*.ttf binary
