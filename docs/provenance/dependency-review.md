@@ -1,6 +1,6 @@
 # Dependency and license review
 
-Review date: 2026-09-07
+Review date: 2026-09-09
 Python floor: 3.11
 
 This is an engineering inventory based on official project documentation, repository license
@@ -21,6 +21,7 @@ select or imply a license for this repository's original code.
 | FastAPI | Thin typed HTTP adapter | 0.141.1 requires Python >=3.10 | MIT | Transitive Starlette/Pydantic inventory required when installed | Approved as optional dependency / Phase 13 |
 | Uvicorn | Reference ASGI server | 0.52.4 requires Python >=3.10 | BSD-3-Clause | Optional `standard` extra adds native/transitive dependencies, so base package is preferred | Approved as optional dependency / Phase 13 |
 | python-multipart | Multipart upload parsing | 0.0.32 requires Python >=3.10 | Apache-2.0 | Input limits remain application responsibilities; preserve notice if redistributed | Approved as optional dependency / Phase 13 |
+| HTTPX | In-process ASGI API tests | 0.28.1 requires Python >=3.8 and supports Python 3.11 | BSD-3-Clause | Development-only; no external network is used by tests | Approved as `>=0.28,<0.29` in `dev` / Phase 13 |
 | pytest | Test runner | 9.1.1 requires Python >=3.10 | MIT | Development-only | Approved now as `>=8.4,<10` / Phase 4 |
 | pytest-cov | Coverage reporting | 7.1.0 requires Python >=3.9 | MIT | Development-only | Approved now as `>=6,<8` / Phase 4 |
 | Ruff | Linter and formatter | 0.16.6 requires Python >=3.7 and publishes platform packages | MIT | Development-only Rust binary | Approved now as `>=0.12,<0.17` / Phase 4 |
@@ -45,6 +46,7 @@ select or imply a license for this repository's original code.
 - [FastAPI source/documentation](https://fastapi.tiangolo.com/)
 - [Uvicorn source](https://github.com/Kludex/uvicorn)
 - [python-multipart source](https://github.com/Kludex/python-multipart)
+- [HTTPX source and license](https://github.com/encode/httpx)
 - [pytest source and license](https://github.com/pytest-dev/pytest)
 - [Ruff source and license](https://github.com/astral-sh/ruff)
 
@@ -83,12 +85,23 @@ or newer and identifies Apache-2.0. Training uses only the documented PyTorch `s
 optimizer-state serialization, training framework, experiment tracker, or runtime download was
 added.
 
+Phase 13 adds only FastAPI `>=0.141,<0.142`, base Uvicorn `>=0.52,<0.53`, and
+python-multipart `>=0.0.32,<0.1` to the independently installable `api` extra. The reference
+CPython 3.11 resolution was FastAPI 0.141.1, Uvicorn 0.52.4, python-multipart 0.0.32, Starlette
+1.6.0, Pydantic 2.13.5, and AnyIO 4.15.1. HTTPX 0.28.1 is development-only. Official package
+metadata records MIT for FastAPI and Pydantic, BSD-3-Clause for Uvicorn, Starlette, and HTTPX,
+and Apache-2.0 for python-multipart; AnyIO metadata records MIT. The base Uvicorn package avoids
+its larger `standard` extra. Core installation still resolves neither API nor ML packages, and
+the API-only test boundary injects a recognizer without importing PyTorch. Runtime code performs
+no network fetch, upload persistence, or dependency installation.
+
 ## CI action review
 
 CI uses `actions/checkout@v6` and `actions/setup-python@v7`. The reviewed stable releases
 were checkout 6.0.2 and setup-python 7.0.0; both current major lines use the maintained Node 24
 runtime. The workflow grants only `contents: read` and explicitly selects Python 3.11. The core
-job installs no ML extra and exercises all non-ML tests plus optional-import isolation. The ML CPU
-job installs the exact official 2.14.0 CPU wheel, installs `[ml,dev]`, runs the full suite with an
-85% coverage gate, and runs `pip check`. Immutable commit-SHA pins remain a required
-pre-publication hardening step in Phase 14.
+job installs no ML/API extra and exercises all non-ML tests plus optional-import isolation. The API
+job installs `[api,dev]`, runs fake-recognizer HTTP tests without PyTorch, and opens no port. The ML
+CPU job installs the exact official 2.14.0 CPU wheel plus `[ml,api,dev]`, runs the full suite with
+an 85% coverage gate, and runs `pip check`. None of these jobs retrains the frozen V2 benchmark.
+Immutable commit-SHA action pins remain a required pre-publication hardening step in Phase 14.

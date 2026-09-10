@@ -22,11 +22,20 @@ ml = [
     "safetensors>=0.8,<0.9",
     "torch>=2.14,<2.15",
 ]
+api = [
+    "fastapi>=0.141,<0.142",
+    "python-multipart>=0.0.32,<0.1",
+    "uvicorn>=0.52,<0.53",
+]
 dev = [
+    "httpx>=0.28,<0.29",
     "pytest>=8.4,<10",
     "pytest-cov>=6,<8",
     "ruff>=0.12,<0.17",
 ]
+
+[project.scripts]
+urdu-ocr = "urdu_document_ocr.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

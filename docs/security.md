@@ -116,6 +116,35 @@ private machine metadata. TXT contains only assembled text. Both writers require
 destination under an existing regular directory, reject symbolic-link targets, use atomic
 same-directory replacement, and deny overwrite unless the caller opts in.
 
+## CLI and reference API boundary
+
+The Phase 13 CLI preserves the library's limits and safe writers. Requested results go to standard
+output or explicit destinations, while diagnostics go to standard error. Expected input,
+configuration, dataset, and checkpoint failures do not emit tracebacks. Optional ML and API
+imports are command-local, so help and core vision/data commands do not require PyTorch or
+FastAPI.
+
+The FastAPI adapter is a reference/local service and binds to `127.0.0.1` by default. A checkpoint
+is fixed, verified, and loaded once during app construction; HTTP callers cannot choose a model or
+path. Health output exposes only model and vocabulary fingerprints. OCR responses reuse the safe
+document projection and add no confidence value.
+
+The `/ocr` route requires one multipart field named `file`. It parses the ASGI request stream in
+bounded chunks directly into memory, caps file bytes and multipart framing overhead, and does not
+use an unlimited upload read or persist an upload artifact. The declared filename and file MIME
+type are ignored for format selection; the existing content decoder identifies actual PNG, JPEG,
+or PDF data. Phase 5 byte, page, DPI, per-page pixel, and document-pixel limits remain
+authoritative. Uploaded bytes and results are released after request processing and are not stored
+in a database, job queue, archive, or request history.
+
+CPU-bound OCR runs in a worker thread rather than the event loop, with a minimal in-process lock
+around the shared recognizer. Logs contain no uploaded filename, bytes, OCR text, predictions, or
+checkpoint path. HTTP errors use safe codes/messages without decoder traces, tensor details, or
+machine paths. The app installs no CORS middleware and provides no authentication, TLS, rate
+limiting, malware scanning, tenant isolation, or hardened worker/memory controls. Explicit network
+exposure therefore requires a separately designed production security boundary; the V1 adapter
+must not be presented as an internet-ready service.
+
 ## Reporting concerns
 
 Potential vulnerabilities or accidental private-data inclusions should be reported privately to

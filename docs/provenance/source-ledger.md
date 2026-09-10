@@ -78,6 +78,12 @@ and engineering decisions; it does not offer legal conclusions.
 | Phase 12B external learnability study | Executed outside the repository | `CURRENT_ORIGINAL_IMPLEMENTATION` / `CURRENT_GENERATED_ARTIFACT` | Newly authored development-only Urdu compositions, deterministic synthetic images, and instrumentation around current public APIs; only the report SHA-256 and aggregate selection evidence enter V2 provenance | No |
 | Synthetic recognition benchmark V2 harness | Implemented in Phase 12B | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written recognition-only prepare/freeze/preflight/run/verify orchestration reusing the current renderer, trainer, recognizer, evaluator, and error analyzer | No |
 | Synthetic recognition benchmark V2 data/results | Implemented in Phase 12B | `CURRENT_ORIGINAL_IMPLEMENTATION` / `CURRENT_GENERATED_ARTIFACT` | Eight newly authored concise templates, deterministic numeric composition, new seeds, grouped identities, train-only vocabulary, and one post-freeze test run | No |
+| `argparse` CLI orchestration | Implemented in Phase 13 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written command adapters over current public ingestion, vision, data, training, inference, evaluation, and serialization APIs | No |
+| FastAPI app factory and routes | Implemented in Phase 13 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written local/reference `/health` and `/ocr` adapter with a fixed reusable recognizer and current document JSON projection | No |
+| Bounded multipart and HTTP error mapping | Implemented in Phase 13 | `CURRENT_ORIGINAL_IMPLEMENTATION` | Newly written streaming byte/framing bounds, single-file policy, content-type distrust, worker-thread/lock boundary, and safe status/error translation | No |
+| FastAPI, Starlette, and Pydantic | Used in Phase 13 | `EXTERNAL_LIBRARY` | Current typed ASGI routing, query validation, thread-pool, response, and OpenAPI APIs; MIT/BSD licenses recorded in dependency review | No |
+| Uvicorn and python-multipart | Used in Phase 13 | `EXTERNAL_LIBRARY` | Current ASGI server and streaming multipart parser APIs; BSD-3-Clause/Apache-2.0 licenses recorded in dependency review | No |
+| HTTPX API tests | Used in Phase 13 | `EXTERNAL_LIBRARY` | Development-only in-process ASGI transport; no network port or remote request | No |
 
 Planned libraries and their licensing/package implications are recorded in
 `dependency-review.md`. Listing a dependency does not incorporate its source into this repository
@@ -100,3 +106,8 @@ artifacts. Its external development study used only new project-authored/program
 composed text and current public package APIs. The V2 corpus is also newly authored and has zero
 exact-text overlap with the development corpus. Model, trainer, CTC, decoder, and `ocr-edit-v1`
 implementations remain unchanged. No trained checkpoint is committed.
+
+Phase 13 CLI, FastAPI, multipart, lifecycle, error-mapping, tests, and documentation were newly
+implemented from the frozen current-project contracts and current official library APIs. No
+historical Django view, Swagger configuration, browser UI, deployment source, CLI script, OCR
+endpoint, request handler, credential code, or frontend source was inspected or copied.

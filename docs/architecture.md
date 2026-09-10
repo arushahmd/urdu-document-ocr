@@ -13,14 +13,14 @@ Document
   -> ordered line and page assembly
   -> document TXT/JSON assembly
   -> CER/WER evaluation, error analysis, and frozen synthetic benchmarks
-  -> public interfaces (planned)
+  -> argparse CLI and thin FastAPI adapter
 ```
 
 The intended V1 is a single-process Python package. Vision, recognition, evaluation, and
 interface layers remain separable so each can be tested without inventing service
 infrastructure.
 
-## Implemented through Phase 12
+## Implemented through Phase 13
 
 - `urdu_document_ocr.types`: immutable structural records, validated image-array contracts,
   half-open geometry, vocabulary indexing/fingerprinting, and privacy-safe public projections.
@@ -46,9 +46,14 @@ infrastructure.
 - `urdu_document_ocr.evaluation`: exact-string Levenshtein alignment, standard CER/WER, corpus
   aggregation, deterministic error analysis, checkpoint evaluation, synthetic vision scoring,
   and frozen benchmark integrity verification.
+- `urdu_document_ocr.cli`: eight shell-safe commands that compose the existing ingestion, vision,
+  data, training, inference, evaluation, and serialization APIs with lazy optional imports.
+- `urdu_document_ocr.api`: an optional FastAPI factory with bounded in-memory multipart parsing,
+  one fixed reusable recognizer, a thread-pool/lock inference boundary, and safe `/health` and
+  `/ocr` responses.
 
-The core technical architecture is now nearly complete. Evaluation and the two synthetic
-benchmark layers are implemented; CLI and thin HTTP API adapters remain planned for Phase 13.
+The V1 engineering architecture is functionally complete through the public interface layer.
+Final publication claims, repository licensing, and the public-release decision remain Phase 14.
 
 RGB page images are `uint8[height,width,3]`. Preprocessed grayscale pages are
 `uint8[height,width]`; foreground masks are `bool[height,width]`. Page and reading-order indices
@@ -278,12 +283,11 @@ pages remain in the page tuple and contribute empty text between their page sepa
 recognition is fail-closed: structural, checkpoint, invalid-line, or model errors abort rather
 than becoming silent empty strings. Public JSON contains text and geometry only.
 
-## Planned, not implemented
+## Remaining publication work
 
-- Phase 12: evaluation metrics, error analysis, and benchmark freeze.
-- Phase 13: CLI and reference HTTP adapter.
-
-Future directories and imports do not exist until their phase supplies meaningful tested code.
+Phase 14 owns the recruiter-facing documentation polish, final package/provenance/security audit,
+repository-license decision, and any later public visibility change. It does not need to invent a
+missing V1 engineering layer.
 
 ## Synthetic fixture layer
 

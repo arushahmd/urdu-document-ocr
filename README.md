@@ -6,14 +6,14 @@ checkpoints, checkpoint-backed inference, exact evaluation, and frozen synthetic
 ## Status
 
 This is an active, clean public reimplementation built in incremental verified phases. Through
-Phase 12B it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
+Phase 13 it implements the package foundation, bounded PNG/JPEG/PDF ingestion, deterministic
 classical preprocessing, classical-CV line segmentation, conservative one/two-column layout,
 Urdu RTL reading order, reproducible OCR dataset engineering, and provenance-cleared synthetic
 Urdu fixtures, a trainable PyTorch CNN-BiLSTM-CTC recognizer, a validated AdamW training path,
 validation-loss selection, safetensors checkpoints, checkpoint-backed line recognition, and
 document-level OCR with text/geometry output, standard CER/WER and exact-match evaluation,
-deterministic error analysis, and two frozen synthetic benchmark layers. No canonical trained
-model is published. The project does **not** yet provide CLI business commands or HTTP serving.
+deterministic error analysis, two frozen synthetic benchmark layers, an installed `urdu-ocr`
+command, and a thin local/reference FastAPI adapter. No canonical trained model is published.
 
 ## Architecture
 
@@ -28,12 +28,12 @@ document
   -> ordered line and page results
   -> document TXT/JSON assembly
   -> exact evaluation and frozen synthetic benchmarks
-  -> CLI and reference HTTP API (planned)
+  -> CLI and thin reference HTTP API
 ```
 
-The recognizer, training, inference, assembly, evaluation, and benchmark paths are implemented.
-CLI/HTTP adapters remain planned. Modules are added in their owning phase with tested behavior
-rather than created as empty scaffolding.
+The recognizer, training, inference, assembly, evaluation, benchmark, CLI, and HTTP paths are
+implemented. Modules are added in their owning phase with tested behavior rather than created as
+empty scaffolding.
 
 ## Current implemented scope
 
@@ -95,6 +95,45 @@ rather than created as empty scaffolding.
 - A separately versioned `recognition-synthetic-v2` benchmark selected from external
   development-only evidence, frozen before one held-out test run, and reproducible without a
   committed checkpoint.
+- Eight `argparse` commands for segmentation, data engineering, synthetic generation, training,
+  checkpoint-backed recognition/evaluation, and local API serving, with shell-safe output and
+  explicit exit behavior.
+- A thin FastAPI factory with one fixed reusable recognizer, bounded in-memory multipart parsing,
+  content-based document detection, thread-pool inference, safe errors, and `/health` plus `/ocr`.
+
+## Quick start
+
+Install the core package for document vision and data commands:
+
+```console
+python -m pip install -e .
+urdu-ocr segment data/sample/pages/syn-page-002-balanced_two_column.png
+```
+
+Install ML support to train, recognize, and evaluate:
+
+```console
+python -m pip install -e ".[ml]"
+urdu-ocr train --train-manifest data/sample/splits/train.jsonl \
+  --validation-manifest data/sample/splits/validation.jsonl --dataset-root data/sample \
+  --vocabulary data/sample/synthetic-fixture-vocabulary.json --output-dir run-output
+urdu-ocr recognize data/sample/pages/syn-page-001-one_column.png \
+  --checkpoint run-output/best --format json --output recognized.json
+urdu-ocr evaluate --manifest data/sample/splits/test.jsonl --dataset-root data/sample \
+  --checkpoint run-output/best --output evaluation.json
+```
+
+Install the local reference service dependencies alongside ML support:
+
+```console
+python -m pip install -e ".[ml,api]"
+urdu-ocr serve --checkpoint run-output/best
+```
+
+No pretrained or canonical OCR checkpoint is bundled. Recognition, evaluation, and serving need
+a compatible model trained by the user or supplied from a separately trusted source. The
+committed benchmark numbers are synthetic engineering evidence, not real-document accuracy.
+See the complete [CLI reference](docs/cli.md) and [API boundary](docs/api.md).
 
 ## Core API
 
@@ -120,11 +159,11 @@ not recognized text. See [architecture details](docs/architecture.md) for exact 
 decision rules, [recognizer details](docs/recognizer.md) for the model contract, and
 [OCR data format](docs/data-format.md) for labeled-data contracts.
 
-The optional ML extra also provides the Python-only training API documented in
+The optional ML extra also provides the training API documented in
 [training and checkpoints](docs/training.md). It requires explicit manifests, vocabulary, dataset
-root, and output directory; no user-facing training CLI exists yet.
+root, and output directory; the CLI calls this same API.
 
-Checkpoint-backed inference is also a Python API and loads the model once for reuse:
+Checkpoint-backed inference loads the model once for reuse:
 
 ```python
 from urdu_document_ocr import (
@@ -253,28 +292,29 @@ Python 3.11 or newer is required. The current dependency constraint intentionall
 ```console
 python -m venv .venv
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[ml,api,dev]"
 python -m ruff check .
 python -m ruff format --check .
 python -m pytest
 ```
 
-Core document/data functionality intentionally does not require PyTorch. Install the reviewed ML
-extra to use and test recognition and training:
+Core document/data functionality intentionally does not require PyTorch or FastAPI. Smaller
+development matrices remain supported:
 
 ```console
+python -m pip install -e ".[dev]"
 python -m pip install -e ".[ml,dev]"
+python -m pip install -e ".[api,dev]"
 ```
 
-CPU-only CI first resolves the official PyTorch CPU wheel channel and then installs the extra.
-Runtime code never downloads weights. Training and inference default to CPU and accept an explicit
-CUDA device; an unavailable configured CUDA device fails without fallback.
+CPU-only CI first resolves the official PyTorch CPU wheel channel and then installs the full
+extras. Runtime code never downloads weights. Training and inference default to CPU and accept an
+explicit CUDA device; an unavailable configured CUDA device fails without fallback.
 
 ## Roadmap
 
-1. CLI and thin reference API adapters over the existing Python pipeline.
-2. Final recruiter documentation and publication audit.
+1. Final recruiter documentation and publication audit.
 
 Only the explicitly labeled synthetic benchmark results above are claimed; no real-world,
-production, or external-comparison claim is made. CLI/API adapters remain Phase 13. Repository
-licensing is intentionally unresolved; public visibility does not itself grant reuse rights.
+production, or external-comparison claim is made. Repository licensing is intentionally
+unresolved; public visibility does not itself grant reuse rights.

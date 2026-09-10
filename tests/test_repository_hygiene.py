@@ -117,7 +117,7 @@ def test_candidate_tree_has_no_historical_dataset_or_vocabulary_artifacts() -> N
     assert findings == []
 
 
-def test_repository_has_no_license_or_post_phase13_modules() -> None:
+def test_repository_has_no_license_and_has_phase13_interfaces() -> None:
     assert not any(
         (REPOSITORY_ROOT / name).exists() for name in ("LICENSE", "LICENSE.md", "COPYING")
     )
@@ -128,9 +128,9 @@ def test_repository_has_no_license_or_post_phase13_modules() -> None:
     assert (package / "evaluation" / "metrics.py").is_file()
     assert (package / "evaluation" / "errors.py").is_file()
     assert (package / "evaluation" / "benchmark.py").is_file()
-    assert not any(
-        (package / name).exists() for name in ("segmentation.py", "layout.py", "cli.py", "api.py")
-    )
+    assert (package / "cli.py").is_file()
+    assert (package / "api.py").is_file()
+    assert not any((package / name).exists() for name in ("segmentation.py", "layout.py"))
 
 
 def test_public_files_have_no_private_paths_or_credential_values() -> None:
