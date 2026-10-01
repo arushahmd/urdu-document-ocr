@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import json
 import logging
 import re
 import subprocess
@@ -117,10 +118,23 @@ def test_candidate_tree_has_no_historical_dataset_or_vocabulary_artifacts() -> N
     assert findings == []
 
 
-def test_repository_has_no_license_and_has_phase13_interfaces() -> None:
-    assert not any(
-        (REPOSITORY_ROOT / name).exists() for name in ("LICENSE", "LICENSE.md", "COPYING")
+def test_repository_has_mit_license_and_phase13_interfaces() -> None:
+    license_path = REPOSITORY_ROOT / "LICENSE"
+    assert license_path.is_file()
+    license_text = license_path.read_text(encoding="utf-8")
+    assert license_text.startswith("MIT License\n")
+    assert "Copyright (c) 2026 Aroosh Ahmad" in license_text
+    assert not any((REPOSITORY_ROOT / name).exists() for name in ("LICENSE.md", "COPYING"))
+
+    font_directory = (
+        REPOSITORY_ROOT / "src" / "urdu_document_ocr" / "assets" / "fonts" / "noto-nastaliq-urdu"
     )
+    font_provenance = json.loads((font_directory / "provenance.json").read_text(encoding="utf-8"))
+    assert font_provenance["license_identifier"] == "OFL-1.1"
+    font_license = font_directory / font_provenance["license_file"]
+    assert font_license.is_file()
+    assert "SIL Open Font License, Version 1.1" in font_license.read_text(encoding="utf-8")
+
     package = REPOSITORY_ROOT / "src" / "urdu_document_ocr"
     assert (package / "recognition" / "inference.py").is_file()
     assert (package / "document" / "assembly.py").is_file()

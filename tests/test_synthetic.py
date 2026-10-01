@@ -41,6 +41,58 @@ FIXTURE_ROOT = REPOSITORY_ROOT / "data" / "sample"
 EXPECTED_FONT_SHA256 = "eff3a48f588f599f98e98350f1107e2e492edefbe864c8b61c73f2d605f1dce4"
 
 
+def _without_rendered_image_hashes(value: object, *, parent_key: str | None = None) -> object:
+    if isinstance(value, dict):
+        return {
+            key: _without_rendered_image_hashes(item, parent_key=key)
+            for key, item in value.items()
+            if not (key == "image_sha256" or (key == "sha256" and parent_key == "image"))
+        }
+    if isinstance(value, list):
+        return [_without_rendered_image_hashes(item, parent_key=parent_key) for item in value]
+    return value
+
+
+def _portable_artifact_identity(manifest: dict[str, object]) -> dict[str, object]:
+    renderer_dependent = {
+        "generation-manifest.json",
+        *(path for path in manifest_artifact_paths(manifest) if path.endswith(".png")),
+    }
+    artifacts = []
+    for entry in manifest["artifacts"]:
+        assert isinstance(entry, dict)
+        path = entry["path"]
+        assert isinstance(path, str)
+        if path in renderer_dependent:
+            artifacts.append(
+                {key: value for key, value in entry.items() if key not in {"sha256", "size_bytes"}}
+            )
+        else:
+            artifacts.append(entry)
+    return {key: value for key, value in manifest.items() if key != "artifacts"} | {
+        "artifacts": artifacts
+    }
+
+
+def manifest_artifact_paths(manifest: dict[str, object]) -> tuple[str, ...]:
+    entries = manifest["artifacts"]
+    assert isinstance(entries, list)
+    paths = []
+    for entry in entries:
+        assert isinstance(entry, dict)
+        path = entry["path"]
+        assert isinstance(path, str)
+        paths.append(path)
+    return tuple(paths)
+
+
+def _generated_png_hashes(root: Path) -> dict[str, str]:
+    return {
+        path.relative_to(root).as_posix(): sha256(path.read_bytes()).hexdigest()
+        for path in sorted(root.rglob("*.png"))
+    }
+
+
 def test_font_provenance_and_direct_shaping_gate(monkeypatch: pytest.MonkeyPatch) -> None:
     font = bundled_font_path()
     provenance = load_font_provenance()
@@ -207,12 +259,23 @@ def test_realistic_pages_follow_current_vision_contracts() -> None:
 
 
 def test_fixture_regeneration_matches_frozen_records(tmp_path: Path) -> None:
-    result = generate_fixture_dataset(tmp_path)
+    first_root = tmp_path / "first"
+    second_root = tmp_path / "second"
+    first_root.mkdir()
+    second_root.mkdir()
+    result = generate_fixture_dataset(first_root)
+    generate_fixture_dataset(second_root)
     committed_generation = json.loads(
         (FIXTURE_ROOT / "generation-manifest.json").read_text(encoding="utf-8")
     )
     regenerated_generation = json.loads(
-        (tmp_path / "generation-manifest.json").read_text(encoding="utf-8")
+        (first_root / "generation-manifest.json").read_text(encoding="utf-8")
+    )
+    committed_artifacts = json.loads(
+        (FIXTURE_ROOT / "artifact-manifest.json").read_text(encoding="utf-8")
+    )
+    regenerated_artifacts = json.loads(
+        (first_root / "artifact-manifest.json").read_text(encoding="utf-8")
     )
 
     assert result.line_count == 24
@@ -225,10 +288,18 @@ def test_fixture_regeneration_matches_frozen_records(tmp_path: Path) -> None:
         "split",
         "vocabulary_fingerprint",
     ):
-        assert regenerated_generation[key] == committed_generation[key]
-    assert (tmp_path / "artifact-manifest.json").read_bytes() == (
-        FIXTURE_ROOT / "artifact-manifest.json"
-    ).read_bytes()
+        assert _without_rendered_image_hashes(regenerated_generation[key]) == (
+            _without_rendered_image_hashes(committed_generation[key])
+        )
+    for key in ("engine", "font_identifier", "font_sha256", "rtl_strategy"):
+        assert regenerated_generation["shaping"][key] == committed_generation["shaping"][key]
+    assert _portable_artifact_identity(regenerated_artifacts) == _portable_artifact_identity(
+        committed_artifacts
+    )
+
+    # PNG bytes are deterministic within one renderer stack, but native FreeType/Pillow
+    # rasterization is not byte-portable across the Windows reference and Linux CI stacks.
+    assert _generated_png_hashes(first_root) == _generated_png_hashes(second_root)
 
 
 def test_committed_pngs_contain_no_metadata() -> None:
