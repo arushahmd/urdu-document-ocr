@@ -67,6 +67,10 @@ def _portable_artifact_identity(manifest: dict[str, object]) -> dict[str, object
             artifacts.append(
                 {key: value for key, value in entry.items() if key not in {"sha256", "size_bytes"}}
             )
+        elif path == "page-ground-truth.json":
+            # This file embeds the renderer-dependent page PNG hashes, although its
+            # logical metadata and exact geometry remain portable.
+            artifacts.append({key: value for key, value in entry.items() if key != "sha256"})
         else:
             artifacts.append(entry)
     return {key: value for key, value in manifest.items() if key != "artifacts"} | {
@@ -277,6 +281,12 @@ def test_fixture_regeneration_matches_frozen_records(tmp_path: Path) -> None:
     regenerated_artifacts = json.loads(
         (first_root / "artifact-manifest.json").read_text(encoding="utf-8")
     )
+    committed_page_ground_truth = json.loads(
+        (FIXTURE_ROOT / "page-ground-truth.json").read_text(encoding="utf-8")
+    )
+    first_page_ground_truth_bytes = (first_root / "page-ground-truth.json").read_bytes()
+    second_page_ground_truth_bytes = (second_root / "page-ground-truth.json").read_bytes()
+    regenerated_page_ground_truth = json.loads(first_page_ground_truth_bytes)
 
     assert result.line_count == 24
     assert result.page_count == 10
@@ -293,12 +303,19 @@ def test_fixture_regeneration_matches_frozen_records(tmp_path: Path) -> None:
         )
     for key in ("engine", "font_identifier", "font_sha256", "rtl_strategy"):
         assert regenerated_generation["shaping"][key] == committed_generation["shaping"][key]
+    # Page ground truth embeds each rendered page's PNG hash. Those hashes are native-
+    # renderer-dependent, but every other field -- including exact boxes and coordinates --
+    # must remain identical to the frozen reference across platforms.
+    assert _without_rendered_image_hashes(regenerated_page_ground_truth) == (
+        _without_rendered_image_hashes(committed_page_ground_truth)
+    )
     assert _portable_artifact_identity(regenerated_artifacts) == _portable_artifact_identity(
         committed_artifacts
     )
 
-    # PNG bytes are deterministic within one renderer stack, but native FreeType/Pillow
-    # rasterization is not byte-portable across the Windows reference and Linux CI stacks.
+    # Renderer-derived records and PNG bytes must be exact within one renderer stack, even
+    # though native FreeType/Pillow rasterization is not byte-portable across platforms.
+    assert first_page_ground_truth_bytes == second_page_ground_truth_bytes
     assert _generated_png_hashes(first_root) == _generated_png_hashes(second_root)
 
 
